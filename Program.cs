@@ -1,29 +1,36 @@
 ﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.IdentityModel.Tokens;
+using payca_lib_logging;
 using sectors_service_orders.Auth;
+using Serilog;
 using System.Text;
 
-var builder = WebApplication.CreateBuilder(args);
-// Cargar la configuraci�n desde appsettings.json
-var Configuration = new ConfigurationBuilder()
+var configuration = new ConfigurationBuilder()
     .SetBasePath(Directory.GetCurrentDirectory())
     .AddJsonFile("appsettings.json")
     .Build();
 
+var builder = WebApplication.CreateBuilder(args);
+
+
+Log.Logger = PaycaLogging.CreateLogger(configuration);
+Log.Logger.Information("Starting up sectors-srv-manifest");
+builder.Host.UseSerilog();
+
 builder.Services.AddControllers();
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+
 builder.Services.AddEndpointsApiExplorer();
-// agrega cors
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowLocalhost", builder => builder.WithOrigins("http://localhost:5173").AllowAnyMethod().AllowAnyHeader());
     options.AddPolicy("AllowAll", builder => builder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
 });
-//agrega authorization
+
 builder.Services.AddAuthorization();
 
-//formOptions
+
 builder.Services.Configure<FormOptions>(options =>
 {
     options.MultipartBodyLengthLimit = 100 * 1024 * 1024; // Set the maximum request length at 100MB
@@ -36,7 +43,6 @@ builder.Services.Configure<FormOptions>(x =>
 });
 
 
-//jwt auth
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
@@ -58,9 +64,9 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         };
         options.TokenValidationParameters = new TokenValidationParameters
         {
-            ValidIssuer = Configuration["Jwt:Issuer"],
+            ValidIssuer = configuration["Jwt:Issuer"],
             // ValidAudience = Configuration["Jwt:Audience"],
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Configuration["Jwt:Key"])),
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["Jwt:Key"])),
             ValidateIssuer = false,
             ValidateAudience = false,
             ValidateLifetime = false,
@@ -69,10 +75,6 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     });
 
 builder.Services.AddSwaggerGen();
-
-//redis consumer background service
-//builder.Services.Configure<RedisConnectionOptions>(Configuration.GetSection("RedisConnection"));
-//builder.Services.AddHostedService<RedisMessageConsumer>();
 
 var app = builder.Build();
 
