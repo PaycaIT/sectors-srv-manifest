@@ -3,13 +3,11 @@ using Microsoft.AspNetCore.Http.Features;
 using Microsoft.IdentityModel.Tokens;
 using payca_lib_logging;
 using sectors_service_orders.Auth;
+using sectors_srv_manifest.Configuration;
 using Serilog;
 using System.Text;
 
-var configuration = new ConfigurationBuilder()
-    .SetBasePath(Directory.GetCurrentDirectory())
-    .AddJsonFile("appsettings.json")
-    .Build();
+IConfiguration configuration = CustomConfigurationManager.configuration;
 
 var builder = WebApplication.CreateBuilder(args);
 

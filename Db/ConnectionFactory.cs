@@ -4,7 +4,7 @@ using sectors_srv_manifest.Configuration;
 
 public static class ConnectionFactory
 {
-    private static readonly string DbConnectionString = ConfigurationManager.DbConnectionString;
+    private static readonly string DbConnectionString = CustomConfigurationManager.DbConnectionString;
 
     public static SqlConnection GetConnection()
     {
