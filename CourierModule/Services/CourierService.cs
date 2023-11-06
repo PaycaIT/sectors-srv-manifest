@@ -1,4 +1,4 @@
-﻿using sectors_srv_manifest.CourierModule.Dao;
+﻿using sectors_srv_courier.CourierModule.Dao;
 using sectors_srv_manifest.CourierModule.Models;
 using sectors_srv_manifest.CourierModule.Models.Reqs;
 
@@ -15,5 +15,41 @@ public class CourierService
             throw new ArgumentException("Data es requerido");
         }
         return await courierDao.CreateCourier(data, cliendId, userId);
+    }
+
+    public async Task<Courier?> GetSingleCourier(int courierId, int clientId)
+    {
+        if (courierId <= 0)
+        {
+            throw new ArgumentException("ID de courier inválido");
+        }
+        return await courierDao.GetSingleCourier(courierId, clientId);
+    }
+
+    public async Task<(IEnumerable<Courier>, int)> GetManyCouriers(CourierFiltersReq filters, int clientId)
+    {
+        if (filters == null)
+        {
+            throw new ArgumentException("Filtros son requeridos");
+        }
+        return await courierDao.GetManyCouriers(filters, clientId);
+    }
+
+    public async Task<Courier?> UpdateCourier(UpdateCourierReq data, int clientId, string userId)
+    {
+        if (data == null)
+        {
+            throw new ArgumentException("Data es requerido");
+        }
+        return await courierDao.UpdateCourier(data, clientId, userId);
+    }
+
+    public async Task SoftDeleteCourier(int Id, int clientId, string userId)
+    {
+        if (Id <= 0)
+        {
+            throw new ArgumentException("ID de courier inválido");
+        }
+        await courierDao.SoftDeleteCourier(Id, clientId, userId);
     }
 }

@@ -38,14 +38,18 @@ public class CourierController : Controller
         }
     }
 
-    [HttpGet("{id}")]
-    public async Task<IActionResult> GetSingleManifest(int id)
+    [HttpGet("{courierId}")]
+    public async Task<IActionResult> GetCourier(int courierId)
     {
         JwtModel authData = JWTUtils.GetAuthData(User.Claims);
         try
         {
-            var manifest = await manifestService.GetSingleManifest(id, authData.ClientId);
-            return Ok(manifest);
+            var courier = await courierService.GetSingleCourier(courierId, authData.ClientId);
+            if (courier == null)
+            {
+                return NotFound();
+            }
+            return Ok(courier);
         }
         catch (Exception ex)
         {
@@ -53,14 +57,14 @@ public class CourierController : Controller
         }
     }
 
-    [HttpPost("find")]
-    public async Task<IActionResult> GetManyManifest(ManifestFiltersReqModel filters)
+    [HttpGet()]
+    public async Task<IActionResult> GetCouriers([FromQuery] CourierFiltersReq filters)
     {
         JwtModel authData = JWTUtils.GetAuthData(User.Claims);
         try
         {
-            var paginatedResponse = await manifestService.GetManyManifest(filters, authData.ClientId);
-            return Ok(paginatedResponse);
+            var (couriers, totalCount) = await courierService.GetManyCouriers(filters, authData.ClientId);
+            return Ok(new { couriers, totalCount });
         }
         catch (Exception ex)
         {
@@ -68,15 +72,19 @@ public class CourierController : Controller
         }
     }
 
-    [HttpPut("{id}")]
-    public async Task<IActionResult> UpdateManifest(int id, [FromBody] UpdateManifestReqModel data)
+    [HttpPut("{courierId}")]
+    public async Task<IActionResult> UpdateCourier(int courierId, UpdateCourierReq data)
     {
         JwtModel authData = JWTUtils.GetAuthData(User.Claims);
-        data.Id = id;
+        data.Id = courierId;
         try
         {
-            var modifiedManifest = await manifestService.UpdateManifest(data, authData.ClientId, authData.UserId);
-            return Ok(modifiedManifest);
+            var courier = await courierService.UpdateCourier(data, authData.ClientId, authData.UserId);
+            if (courier == null)
+            {
+                return NotFound();
+            }
+            return Ok(courier);
         }
         catch (Exception ex)
         {
@@ -84,45 +92,20 @@ public class CourierController : Controller
         }
     }
 
-    [HttpDelete("{id}")]
-    public async Task<IActionResult> SoftDeleteManifest(int id)
+    [HttpDelete("{courierId}")]
+    public async Task<IActionResult> SoftDeleteCourier(int courierId)
     {
         JwtModel authData = JWTUtils.GetAuthData(User.Claims);
         try
         {
-            await manifestService.SoftDeleteManifest(id, authData.ClientId, authData.UserId);
-            return Ok();
+            await courierService.SoftDeleteCourier(courierId, authData.ClientId, authData.UserId);
+            return NoContent();
         }
         catch (Exception ex)
         {
             return MapExceptionsToHttp(ex);
         }
     }
-
-    [HttpPost("smart-associate")]
-    public async Task<IActionResult> SmartAssociate(SmartAssociateManifestReq data)
-    {
-        JwtModel authData = JWTUtils.GetAuthData(User.Claims);
-        try
-        {
-            var manifest = await manifestService.SmartAssociate(data.ServiceOrderExternalId, data.SectorId, authData.ClientId, authData.UserId, data.Force);
-            return Ok(manifest);
-        }
-        catch (Exception ex)
-        {
-            return MapExceptionsToHttp(ex);
-        }
-    }
-
-    //public async Task<IActionResult> AddServiceOrderToManifest([FromBody] string serviceOrderExternalId, [FromBody] bool force = false)
-    //{
-
-    //}
-
-    //public async Task<IActionResult> RemoveServiceOrderFromManifest()
-    //{
-
-    //}
 
     private IActionResult MapExceptionsToHttp(Exception ex)
     {
