@@ -6,7 +6,6 @@ using sectors_srv_manifest.AuthModule.Models;
 using sectors_srv_manifest.CourierModule.Exceptions;
 using sectors_srv_manifest.CourierModule.Models.Reqs;
 using sectors_srv_manifest.CourierModule.Services;
-using System.Text.Json;
 
 namespace sectors_srv_manifest.CourierModule.Controllers;
 
@@ -72,11 +71,14 @@ public class CourierController : Controller
         }
     }
 
-    [HttpPut("{courierId}")]
-    public async Task<IActionResult> UpdateCourier(int courierId, UpdateCourierReq data)
+    [HttpPut("{courierId?}")]
+    public async Task<IActionResult> UpdateCourier( UpdateCourierReq data, int? courierId)
     {
         JwtModel authData = JWTUtils.GetAuthData(User.Claims);
-        data.Id = courierId;
+        if (courierId.HasValue)
+        {
+            data.Id = courierId.Value; 
+        }
         try
         {
             var courier = await courierService.UpdateCourier(data, authData.ClientId, authData.UserId);
@@ -99,7 +101,7 @@ public class CourierController : Controller
         try
         {
             await courierService.SoftDeleteCourier(courierId, authData.ClientId, authData.UserId);
-            return NoContent();
+            return Ok($"Se ha eliminado el Courier con codigo {courierId}");
         }
         catch (Exception ex)
         {

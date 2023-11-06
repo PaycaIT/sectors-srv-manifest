@@ -2,9 +2,9 @@
 
 public class CreateCourierReq
 {
-    public string Name { get; set; } = string.Empty;
-    public string PersonalId { get; set; } = string.Empty;
-    public string VehiclePlate { get; set; } = string.Empty; 
+    public string? Name { get; set; } 
+    public string? PersonalId { get; set; } 
+    public string? VehiclePlate { get; set; } 
 }
 
 
