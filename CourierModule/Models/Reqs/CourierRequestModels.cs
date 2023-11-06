@@ -6,3 +6,9 @@ public class CreateCourierReq
     public string PersonalId { get; set; } = string.Empty;
     public string VehiclePlate { get; set; } = string.Empty; 
 }
+
+
+public class UpdateCourierReq : CreateCourierReq
+{
+    public int Id { get; set; }
+}
