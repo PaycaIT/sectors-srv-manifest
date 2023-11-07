@@ -53,7 +53,7 @@ public class ManifestController : Controller
         }
     }
 
-    [HttpPost("find")]
+    [HttpGet("find")]
     public async Task<IActionResult> GetManyManifest(ManifestFiltersReqModel filters)
     {
         JwtModel authData = JWTUtils.GetAuthData(User.Claims);

@@ -23,12 +23,12 @@ public class RouteController : Controller
     }
 
     [HttpPost()]
-    public async Task<IActionResult> CreateRoute(string startingManifestId, int courierId)
+    public async Task<IActionResult> CreateRoute(CreateRouteReq data)
     {
         JwtModel authData = JWTUtils.GetAuthData(User.Claims);
         try
         {
-            var route = await routeService.CreateRoute(startingManifestId, courierId, authData.ClientId, authData.UserId);
+            var route = await routeService.CreateRoute(data, authData.ClientId, authData.UserId);
             return Ok(route);
         }
         catch (Exception ex)

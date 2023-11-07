@@ -10,7 +10,7 @@ namespace sectors_srv_manifest.RouteModule.Dao;
 
 public class RouteDao
 {
-    public async Task<Route?> CreateRoute(string startingManifestId, int courierId, int clientId, string userId)
+    public async Task<Route?> CreateRoute(CreateRouteReq data, int clientId, string userId)
     {
         using SqlConnection connection = ConnectionFactory.GetConnection();
 
@@ -25,8 +25,8 @@ public class RouteDao
         };
 
         var parameters = new DynamicParameters();
-        parameters.Add("@StartingManifestId", startingManifestId);
-        parameters.Add("@CourierId", courierId);
+        parameters.Add("@StartingManifestId", data.StartingManifestId);
+        parameters.Add("@CourierId", data.CourierId);
         parameters.Add("@ClientId", clientId);
         parameters.Add("@CreatedBy", userId);
         parameters.Add("@ErrorCode", dbType: DbType.Int32, direction: ParameterDirection.Output);
@@ -42,7 +42,7 @@ public class RouteDao
             throw new BadRequestException(errDesc);
         }
 
-        Route? route = JsonSerializer.Deserialize<Route?>(jsonResult);
+        Route? route = JsonSerializer.Deserialize<Route>(jsonResult);
 
         if (route == null)
         {

@@ -7,13 +7,13 @@ public class RouteService
 {
     private readonly RouteDao routeDao = new();
 
-    public async Task<Route?> CreateRoute(string startingManifestId, int courierId, int clientId, string userId)
+    public async Task<Route?> CreateRoute(CreateRouteReq data, int clientId, string userId)
     {
-        if (startingManifestId == null)
+        if (data.StartingManifestId == null)
         {
-            throw new ArgumentException("Se requiere un Manifest Id es requerido");
+            throw new ArgumentException("Se requiere una Ruta valida");
         }
-        return await routeDao.CreateRoute(startingManifestId, courierId, clientId, userId);
+        return await routeDao.CreateRoute(data, clientId, userId);
     }
 
     public async Task<Route?> GetSingleRoute(int routeId, int clientId)
