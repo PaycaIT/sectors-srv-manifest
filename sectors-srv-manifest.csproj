@@ -21,8 +21,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="RouteModule\Controllers\" />
-    <Folder Include="RouteModule\Services\" />
     <Folder Include="TrackingModule\" />
   </ItemGroup>
 

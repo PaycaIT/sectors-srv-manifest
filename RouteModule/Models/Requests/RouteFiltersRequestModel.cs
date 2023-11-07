@@ -2,9 +2,8 @@
 
 public class RouteFiltersReq
 {
-    public string? Name { get; set; }
-    public string? PersonalId { get; set; }
-    public string? VehiclePlate { get; set; }
+    public string StartingManifestId { get; set; } = string.Empty;
+    public int CourierId { get; set; }
     public int PageNumber { get; set; } = 1;
     public int PageSize { get; set; } = 10;
     public string SortColumn { get; set; } = "CreatedAt";

@@ -11,6 +11,7 @@ public class Route
     public string StartingManifestId { get; set; } = string.Empty;
     public int CourierId { get; set; }
     public string Status { get; set; } = string.Empty;
+    public int SoftDeleted { get; set; }
 }
 
 public class RouteDetail
