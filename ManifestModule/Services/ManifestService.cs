@@ -1,4 +1,4 @@
-﻿using sectors_srv_manifest.ManifestModule.Dao;
+using sectors_srv_manifest.ManifestModule.Dao;
 using sectors_srv_manifest.ManifestModule.Models;
 using sectors_srv_manifest.ManifestModule.Models.Reqs;
 
