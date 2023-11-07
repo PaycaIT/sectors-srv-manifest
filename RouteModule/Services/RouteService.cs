@@ -34,21 +34,21 @@ public class RouteService
         return await routeDao.GetManyRoutes(filters, clientId);
     }
 
-    public async Task<Route?> UpdateRoute(UpdateRouteReq data, int clientId, string userId)
+    public async Task<Route?> UpdateRoute(int routeId, int clientId, string userId)
     {
-        if (data == null)
+        if (routeId == 0)
         {
-            throw new ArgumentException("Data es requerido");
+            throw new ArgumentException("routeId es requerido");
         }
-        return await routeDao.UpdateRoute(data, clientId, userId);
+        return await routeDao.UpdateRoute(routeId, clientId, userId);
     }
 
-    public async Task SoftDeleteRoute(int Id, int clientId, string userId)
+    public async Task CancelRoute(int Id, int clientId, string userId)
     {
         if (Id <= 0)
         {
             throw new ArgumentException("ID de ruta inválido");
         }
-        await routeDao.SoftDeleteRoute(Id, clientId, userId);
+        await routeDao.CancelRoute(Id, clientId, userId);
     }
 }

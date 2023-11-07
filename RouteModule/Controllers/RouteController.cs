@@ -72,16 +72,17 @@ public class RouteController : Controller
     }
 
     [HttpPut("{routeId?}")]
-    public async Task<IActionResult> UpdateRoute(UpdateRouteReq data, int? routeId)
+    public async Task<IActionResult> UpdateRoute(int? routeId)
     {
+        int id = 0;
         JwtModel authData = JWTUtils.GetAuthData(User.Claims);
         if (routeId.HasValue)
         {
-            data.Id = routeId.Value;
+             id = (int)routeId.Value;
         }
         try
         {
-            var route = await routeService.UpdateRoute(data, authData.ClientId, authData.UserId);
+            var route = await routeService.UpdateRoute(id, authData.ClientId, authData.UserId);
             if (route == null)
             {
                 return NotFound();
@@ -95,19 +96,20 @@ public class RouteController : Controller
     }
 
     [HttpDelete("{routeId}")]
-    public async Task<IActionResult> SoftDeleteRoute(int routeId)
+    public async Task<IActionResult> CancelRoute(int routeId)
     {
         JwtModel authData = JWTUtils.GetAuthData(User.Claims);
         try
         {
-            await routeService.SoftDeleteRoute(routeId, authData.ClientId, authData.UserId);
-            return Ok($"Se ha eliminado la Ruta con código {routeId}");
+            await routeService.CancelRoute(routeId, authData.ClientId, authData.UserId);
+            return Ok($"Se ha cancelado la Ruta con código {routeId}");
         }
         catch (Exception ex)
         {
             return MapExceptionsToHttp(ex);
         }
     }
+
     private IActionResult MapExceptionsToHttp(Exception ex)
     {
         if (ex is EntityNotFoundException notFoundEx)

@@ -9,9 +9,10 @@ public class Route
     public DateTime CreatedAt { get; set; }
     public string CreatedBy { get; set; } = string.Empty;
     public string StartingManifestId { get; set; } = string.Empty;
+    public string? UpdatedBy { get; set; } = string.Empty;
+    public DateTime? UpdatedAt { get; set; }
     public int CourierId { get; set; }
     public string Status { get; set; } = string.Empty;
-    public int SoftDeleted { get; set; }
 }
 
 public class RouteDetail

@@ -112,32 +112,22 @@ public class RouteDao
         return (routes, totalCount);
     }
 
-    public async Task<Route?> UpdateRoute(UpdateRouteReq data, int clientId, string userId)
+    public async Task<Route?> UpdateRoute(int routeId, int clientId, string userId)
     {
         using SqlConnection connection = ConnectionFactory.GetConnection();
         await connection.OpenAsync();
 
         var parameters = new DynamicParameters();
-        parameters.Add("@Id", data.Id);
-        parameters.Add("@StartingManifestId", data.StartingManifestId);
-        parameters.Add("@CourierId", data.CourierId);
+        parameters.Add("@RouteId", routeId);
         parameters.Add("@ClientId", clientId);
         parameters.Add("@UpdatedBy", userId);
-        parameters.Add("@Status", data.Status);
-        parameters.Add("@UpdatedRows", dbType: DbType.Int32, direction: ParameterDirection.Output);
         parameters.Add("@ErrorCode", dbType: DbType.Int32, direction: ParameterDirection.Output);
         parameters.Add("@ErrorDesc", dbType: DbType.String, size: 200, direction: ParameterDirection.Output);
 
         string? jsonResult = await connection.QuerySingleOrDefaultAsync<string>("PrcUpdateRoute", parameters, commandType: CommandType.StoredProcedure);
 
-        int affectedRows = parameters.Get<int>("@UpdatedRows");
         int errCode = parameters.Get<int>("@ErrorCode");
         string errDesc = parameters.Get<string>("@ErrorDesc");
-
-        if (affectedRows == 0)
-        {
-            throw new EntityNotFoundException("Route no encontrado");
-        }
 
         if (errCode != 0 || jsonResult == null)
         {
@@ -154,21 +144,35 @@ public class RouteDao
         return route;
     }
 
-    public async Task SoftDeleteRoute(int Id, int clientId, string userId)
+    public async Task<Route?> CancelRoute(int Id, int clientId, string userId)
     {
-        string sql = @"
-        UPDATE Route
-        SET SoftDeleted = 1
-        WHERE Id = @Id AND ClientId = @ClientId;
-    ";
-
         using SqlConnection connection = ConnectionFactory.GetConnection();
         await connection.OpenAsync();
-        int rowsAffected = await connection.ExecuteAsync(sql, new { Id = Id, ClientId = clientId });
 
-        if (rowsAffected == 0)
+        var parameters = new DynamicParameters();
+        parameters.Add("@RouteId", Id);
+        parameters.Add("@ClientId", clientId);
+        parameters.Add("@UpdatedBy", userId);
+        parameters.Add("@ErrorCode", dbType: DbType.Int32, direction: ParameterDirection.Output);
+        parameters.Add("@ErrorDesc", dbType: DbType.String, size: 200, direction: ParameterDirection.Output);
+
+        string? jsonResult = await connection.QuerySingleOrDefaultAsync<string>("PrcCancelRoute", parameters, commandType: CommandType.StoredProcedure);
+
+        int errCode = parameters.Get<int>("@ErrorCode");
+        string errDesc = parameters.Get<string>("@ErrorDesc");
+
+        if (errCode != 0 || jsonResult == null)
         {
-            throw new EntityNotFoundException("Ruta no existe");
+            throw new ArgumentException(errDesc);
         }
+
+        Route? route = JsonSerializer.Deserialize<Route>(jsonResult);
+
+        if (route == null)
+        {
+            throw new ArgumentException("Error al cancelar la ruta");
+        }
+
+        return route;
     }
 }
