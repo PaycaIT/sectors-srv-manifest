@@ -1,18 +1,20 @@
 ﻿using System.Text.Json.Serialization;
 namespace sectors_srv_manifest.RouteModule.Models;
 
-public class Route
+public class RouteModel
 {
     public int Id { get; set; }
-    [JsonIgnore]
-    public int ClientId { get; set; }
     public DateTime CreatedAt { get; set; }
     public string CreatedBy { get; set; } = string.Empty;
-    public string StartingManifestId { get; set; } = string.Empty;
-    public string? UpdatedBy { get; set; } = string.Empty;
-    public DateTime? UpdatedAt { get; set; }
+    public int StartingManifestId { get; set; }
     public int CourierId { get; set; }
     public string Status { get; set; } = string.Empty;
+    public string? UpdatedBy { get; set; } = string.Empty;
+    public DateTime? UpdatedAt { get; set; }
+
+    [JsonIgnore]
+    public int ClientId { get; set; }
+
 }
 
 public class RouteDetail

@@ -24,5 +24,5 @@ public class RouteDetailReq
     [JsonIgnore]
     public int ClientId { get; set; }
     public DateTime CreatedAt { get; set; }
-    public Route? Route { get; set; }
+    public RouteModel? Route { get; set; }
 }

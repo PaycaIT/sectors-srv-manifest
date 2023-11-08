@@ -1,16 +1,17 @@
-﻿using Dapper;
+using Dapper;
 using Microsoft.Data.SqlClient;
+using Newtonsoft.Json;
 using sectors_srv_manifest.Db;
 using sectors_srv_manifest.RouteModule.Exceptions;
+using sectors_srv_manifest.RouteModule.Models;
 using sectors_srv_manifest.RouteModule.Models.Reqs;
 using System.Data;
-using System.Text.Json;
 
 namespace sectors_srv_manifest.RouteModule.Dao;
 
 public class RouteDao
 {
-    public async Task<Route?> CreateRoute(CreateRouteReq data, int clientId, string userId)
+    public async Task<RouteModel?> CreateRoute(CreateRouteReq data, int clientId, string userId)
     {
         using SqlConnection connection = ConnectionFactory.GetConnection();
 
@@ -42,7 +43,7 @@ public class RouteDao
             throw new BadRequestException(errDesc);
         }
 
-        Route? route = JsonSerializer.Deserialize<Route>(jsonResult);
+        RouteModel? route = JsonConvert.DeserializeObject<RouteModel>(jsonResult);
 
         if (route == null)
         {
@@ -52,7 +53,7 @@ public class RouteDao
         return route;
     }
 
-    public async Task<Route> GetSingleRoute(int routeId, int clientId)
+    public async Task<RouteModel> GetSingleRoute(int routeId, int clientId)
     {
         string sql = @"
         SELECT
@@ -67,7 +68,7 @@ public class RouteDao
 
         using SqlConnection connection = ConnectionFactory.GetConnection();
         await connection.OpenAsync();
-        var route = await connection.QuerySingleOrDefaultAsync<Route>(sql, new { RouteId = routeId, ClientId = clientId });
+        var route = await connection.QuerySingleOrDefaultAsync<RouteModel>(sql, new { RouteId = routeId, ClientId = clientId });
 
         if (route == null)
         {
@@ -77,7 +78,7 @@ public class RouteDao
         return route;
     }
 
-    public async Task<(IEnumerable<Route>, int)> GetManyRoutes(RouteFiltersReq filters, int clientId)
+    public async Task<(IEnumerable<RouteModel>, int)> GetManyRoutes(RouteFiltersReq filters, int clientId)
     {
         using SqlConnection connection = ConnectionFactory.GetConnection();
         await connection.OpenAsync();
@@ -85,6 +86,7 @@ public class RouteDao
         var parameters = new DynamicParameters();
         parameters.Add("@StartingManifestId", filters.StartingManifestId);
         parameters.Add("@CourierId", filters.CourierId);
+        parameters.Add("@Status", filters.Status);
         parameters.Add("@PageNumber", filters.PageNumber);
         parameters.Add("@PageSize", filters.PageSize);
         parameters.Add("@SortColumn", filters.SortColumn);
@@ -102,7 +104,7 @@ public class RouteDao
         }
 
         int totalCount = parameters.Get<int>("@TotalCount");
-        IEnumerable<Route> routes = JsonSerializer.Deserialize<IEnumerable<Route>>(String.Join("", resultJson));
+        IEnumerable<RouteModel> routes = JsonConvert.DeserializeObject<IEnumerable<RouteModel>>(String.Join("", resultJson));
 
         if (routes == null)
         {
@@ -112,7 +114,7 @@ public class RouteDao
         return (routes, totalCount);
     }
 
-    public async Task<Route?> UpdateRoute(int routeId, int clientId, string userId)
+    public async Task<RouteModel?> UpdateRoute(int routeId, int clientId, string userId)
     {
         using SqlConnection connection = ConnectionFactory.GetConnection();
         await connection.OpenAsync();
@@ -134,7 +136,7 @@ public class RouteDao
             throw new ArgumentException(errDesc);
         }
 
-        Route? route = JsonSerializer.Deserialize<Route>(jsonResult);
+        RouteModel? route = JsonConvert.DeserializeObject<RouteModel>(jsonResult);
 
         if (route == null)
         {
@@ -144,7 +146,7 @@ public class RouteDao
         return route;
     }
 
-    public async Task<Route?> CancelRoute(int Id, int clientId, string userId)
+    public async Task<RouteModel?> CancelRoute(int Id, int clientId, string userId)
     {
         using SqlConnection connection = ConnectionFactory.GetConnection();
         await connection.OpenAsync();
@@ -166,7 +168,7 @@ public class RouteDao
             throw new ArgumentException(errDesc);
         }
 
-        Route? route = JsonSerializer.Deserialize<Route>(jsonResult);
+        RouteModel? route = JsonConvert.DeserializeObject<RouteModel>(jsonResult);
 
         if (route == null)
         {
