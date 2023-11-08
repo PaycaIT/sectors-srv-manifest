@@ -34,21 +34,14 @@ public class CourierDao
         parameters.Add("@ErrorCode", dbType: DbType.Int32, direction: ParameterDirection.Output);
         parameters.Add("@ErrorDesc", dbType: DbType.String, size: 200, direction: ParameterDirection.Output);
 
-        string? jsonResult = await connection.QuerySingleOrDefaultAsync<string>("PrcCreateCourier", parameters, commandType: CommandType.StoredProcedure);
+        Courier? courier = await connection.QuerySingleOrDefaultAsync<Courier>("PrcCreateCourier", parameters, commandType: CommandType.StoredProcedure);
 
         int errCode = parameters.Get<int>("@ErrorCode");
         string errDesc = parameters.Get<string>("@ErrorDesc");
 
-        if (errCode != 0 || jsonResult == null)
+        if (errCode != 0 || courier == null)
         {
             throw new BadRequestException(errDesc);
-        }
-
-        Courier? courier = JsonSerializer.Deserialize<Courier?>(jsonResult);
-
-        if (courier == null)
-        {
-            throw new ArgumentException("Error al crear el manifiesto");
         }
 
         return courier;
@@ -97,20 +90,14 @@ public class CourierDao
 
         string prc = "PrcGetCouriers"; 
 
-        var resultJson = await connection.QueryAsync<string>(prc, parameters, commandType: CommandType.StoredProcedure);
+        IEnumerable<Courier> couriers = await connection.QueryAsync<Courier>(prc, parameters, commandType: CommandType.StoredProcedure);
 
-        if (resultJson == null || resultJson.Count() == 0)
+        if (couriers == null || !couriers.Any())
         {
             throw new ArgumentException("Error al obtener los couriers");
         }
 
         int totalCount = parameters.Get<int>("@TotalCount");
-        IEnumerable<Courier> couriers = JsonSerializer.Deserialize<IEnumerable<Courier>>(String.Join("", resultJson));
-
-        if (couriers == null)
-        {
-            throw new ArgumentException("Error al obtener los couriers");
-        }
 
         return (couriers, totalCount);
     }
@@ -131,7 +118,7 @@ public class CourierDao
         parameters.Add("@ErrorCode", dbType: DbType.Int32, direction: ParameterDirection.Output);
         parameters.Add("@ErrorDesc", dbType: DbType.String, size: 200, direction: ParameterDirection.Output);
 
-        string? jsonResult = await connection.QuerySingleOrDefaultAsync<string>("PrcUpdateCourier", parameters, commandType: CommandType.StoredProcedure);
+        Courier? courier = await connection.QuerySingleOrDefaultAsync<Courier>("PrcUpdateCourier", parameters, commandType: CommandType.StoredProcedure);
 
         int affectedRows = parameters.Get<int>("@UpdatedRows");
         int errCode = parameters.Get<int>("@ErrorCode");
@@ -142,16 +129,9 @@ public class CourierDao
             throw new EntityNotFoundException("Courier no existe");
         }
 
-        if (errCode != 0 || jsonResult == null)
+        if (errCode != 0 || courier == null)
         {
             throw new ArgumentException(errDesc);
-        }
-
-        Courier? courier = JsonSerializer.Deserialize<Courier>(jsonResult);
-
-        if (courier == null)
-        {
-            throw new ArgumentException("Error al actualizar el courier");
         }
 
         return courier;

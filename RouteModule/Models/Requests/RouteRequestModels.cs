@@ -20,7 +20,7 @@ public class UpdateRouteReq : CreateRouteReq
 public class RouteDetailReq
 {
     public int Id { get; set; }
-    public ServiceOrder? ServiceOrder { get; set; }
+    public IEnumerable<ServiceOrder>? ServiceOrders { get; set; }
     [JsonIgnore]
     public int ClientId { get; set; }
     public DateTime CreatedAt { get; set; }
