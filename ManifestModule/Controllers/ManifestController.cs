@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using sectors_service_orders.Auth;
 using sectors_srv_manifest.AuthModule.Exceptions;
@@ -53,7 +53,7 @@ public class ManifestController : Controller
         }
     }
 
-    [HttpPost("find")]
+    [HttpGet("find")]
     public async Task<IActionResult> GetManyManifest(ManifestFiltersReqModel filters)
     {
         JwtModel authData = JWTUtils.GetAuthData(User.Claims);
