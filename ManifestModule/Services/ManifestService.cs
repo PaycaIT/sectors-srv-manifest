@@ -22,6 +22,11 @@ public class ManifestService
         return await manifestDao.GetSingleManifest(id, clientId);
     }
 
+    //public async Task<ManifestModel> GetSingleManifest(int id, int clientId)
+    //{
+    //    return await manifestDao.GetSingleManifest(id, clientId);
+    //}
+
     public async Task<PaginatedResponse<ManifestModel>> GetManyManifest(ManifestFiltersReqModel filters, int clientId)
     {
         var (items, totalCount) = await manifestDao.GetManyManifest(filters, clientId);
@@ -48,6 +53,10 @@ public class ManifestService
     {
         var a = await manifestDao.SmartAssociate(serviceOrderExternalId, sectorId, clientId, userId, force);
         return a;
+    }
+
+    public async Task<IEnumerable<ManifestServiceOrder>> ListServiceOrders(int manifestId, int clientId) { 
+        return await manifestDao.ListServiceOrders(manifestId, clientId);
     }
 
     //public async Task<Manifest> AddServiceOrderToManifest()

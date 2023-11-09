@@ -259,6 +259,25 @@ public class ManifestDao
         }
     }
 
+    public async Task<IEnumerable<ManifestServiceOrder>> ListServiceOrders(int manifestId, int clientId)
+    {
+        var parameters = new DynamicParameters();
+        parameters.Add("@ManifestId", manifestId);
+        parameters.Add("@ClientId", clientId);
+        using (SqlConnection connection = ConnectionFactory.GetConnection())
+        {
+            await connection.OpenAsync();
+            var result = await connection.QueryAsync<ManifestServiceOrder>("PrcGetManifestServiceOrders", parameters, commandType: CommandType.StoredProcedure);
+            if (result == null || result.Count() == 0)
+            {
+                throw new EntityNotFoundException("Manifiesto no existe");
+            }
+
+            return result;
+        }
+
+    }
+
     //public async Task<Manifest> AddServiceOrderToManifest()
     //{
 
