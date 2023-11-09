@@ -1,6 +1,29 @@
-﻿namespace sectors_srv_manifest.RouteModule.Models;
+﻿using System.Text.Json.Serialization;
 
-public class ServiceOrder
+namespace sectors_srv_manifest.TrackingModule.Models;
+
+public class SOTrackingTO
+{
+    public int Id { get; set; }
+    [JsonIgnore]
+    public int ClientId { get; set; }
+    public int ServiceOrderId { get; set; }
+    public int SOExternalId { get; set; }
+    public string EvExCode { get; set; } = string.Empty;
+    public DateTime Date { get; set; }
+}
+
+public class EventsErrorTO
+{
+    public int Id { get; set; }
+    [JsonIgnore]
+    public int ClientId { get; set; }
+    public string Description { get; set; } = string.Empty;
+    public string EventType { get; set; } = string.Empty;
+    public string Code { get; set; } = string.Empty;
+}
+
+public class ServiceOrderTO
 {
     public int? Id { get; set; }
     public string? ExternalId { get; set; }
@@ -10,6 +33,7 @@ public class ServiceOrder
     public int RecipientDirId { get; set; }
     public int DimensionId { get; set; }
     public int ValueId { get; set; }
+    [JsonIgnore]
     public int ClientId { get; set; }
     public int? BatchId { get; set; }
     public string CreatedBy { get; set; } = string.Empty;
@@ -19,14 +43,4 @@ public class ServiceOrder
     public DateTime UpdatedAt { get; set; }
     public DateTime DeletedAt { get; set; }
     public DateTime SoftDeleted { get; set; }
-}
-
-public class ServiceOrderTracking
-{
-    public int Id { get; set; }
-    public int ClientId { get; set; }
-    public int ServiceOrderId { get; set; }
-    public int SOExternalId { get; set; }
-    public string EvExCode { get; set; } = string.Empty;
-    public DateTime Date { get; set; }
 }

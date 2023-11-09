@@ -1,6 +1,6 @@
 ﻿namespace sectors_srv_manifest.ManifestModule.Models;
 
-public class ManifestServiceOrder
+public class ManifestServiceOrderTO
 {
     public int ClientOrdinal { get; set; }
     public string ExternalId { get; set; } = "";

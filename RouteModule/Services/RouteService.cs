@@ -8,7 +8,7 @@ public class RouteService
 {
     private readonly RouteDao routeDao = new();
 
-    public async Task<RouteModel?> CreateRoute(CreateRouteReq data, int clientId, string userId)
+    public async Task<RouteTO?> CreateRoute(CreateRouteReq data, int clientId, string userId)
     {
         if (data.StartingManifestId == null)
         {
@@ -17,7 +17,7 @@ public class RouteService
         return await routeDao.CreateRoute(data, clientId, userId);
     }
 
-    public async Task<RouteModel?> GetSingleRoute(int routeId, int clientId)
+    public async Task<RouteTO?> GetSingleRoute(int routeId, int clientId)
     {
         if (routeId <= 0)
         {
@@ -26,7 +26,7 @@ public class RouteService
         return await routeDao.GetSingleRoute(routeId, clientId);
     }
 
-    public async Task<(IEnumerable<RouteModel>, int)> GetManyRoutes(RouteFiltersReq filters, int clientId)
+    public async Task<(IEnumerable<RouteTO>, int)> GetManyRoutes(RouteFiltersReq filters, int clientId)
     {
         if (filters == null)
         {
@@ -35,7 +35,7 @@ public class RouteService
         return await routeDao.GetManyRoutes(filters, clientId);
     }
 
-    public async Task<RouteModel?> UpdateRoute(int routeId, int clientId, string userId)
+    public async Task<RouteTO?> UpdateRoute(int routeId, int clientId, string userId)
     {
         if (routeId == 0)
         {
@@ -53,7 +53,7 @@ public class RouteService
         await routeDao.CancelRoute(Id, clientId, userId);
     }
 
-    public async Task<RouteDetail?> GetRouteDetail(int routeId, int clientId)
+    public async Task<RouteDetailTO?> GetRouteDetail(int routeId, int clientId)
     {
         if (routeId <= 0)
         {

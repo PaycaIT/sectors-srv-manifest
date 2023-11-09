@@ -11,7 +11,7 @@ namespace sectors_srv_manifest.RouteModule.Dao;
 
 public class RouteDao
 {
-    public async Task<RouteModel?> CreateRoute(CreateRouteReq data, int clientId, string userId)
+    public async Task<RouteTO?> CreateRoute(CreateRouteReq data, int clientId, string userId)
     {
         using SqlConnection connection = ConnectionFactory.GetConnection();
 
@@ -33,7 +33,7 @@ public class RouteDao
         parameters.Add("@ErrorCode", dbType: DbType.Int32, direction: ParameterDirection.Output);
         parameters.Add("@ErrorDesc", dbType: DbType.String, size: 200, direction: ParameterDirection.Output);
 
-        RouteModel? route = await connection.QuerySingleOrDefaultAsync<RouteModel>("PrcCreateRoute", parameters, commandType: CommandType.StoredProcedure);
+        RouteTO? route = await connection.QuerySingleOrDefaultAsync<RouteTO>("PrcCreateRoute", parameters, commandType: CommandType.StoredProcedure);
 
         int errCode = parameters.Get<int>("@ErrorCode");
         string errDesc = parameters.Get<string>("@ErrorDesc");
@@ -46,7 +46,7 @@ public class RouteDao
         return route;
     }
 
-    public async Task<RouteModel?> GetSingleRoute(int routeId, int clientId)
+    public async Task<RouteTO?> GetSingleRoute(int routeId, int clientId)
     {
         string sql = @"
         SELECT
@@ -61,7 +61,7 @@ public class RouteDao
 
         using SqlConnection connection = ConnectionFactory.GetConnection();
         await connection.OpenAsync();
-        RouteModel? route = await connection.QuerySingleOrDefaultAsync<RouteModel>(sql, new { RouteId = routeId, ClientId = clientId });
+        RouteTO? route = await connection.QuerySingleOrDefaultAsync<RouteTO>(sql, new { RouteId = routeId, ClientId = clientId });
 
         if (route == null)
         {
@@ -71,7 +71,7 @@ public class RouteDao
         return route;
     }
 
-    public async Task<(IEnumerable<RouteModel>, int)> GetManyRoutes(RouteFiltersReq filters, int clientId)
+    public async Task<(IEnumerable<RouteTO>, int)> GetManyRoutes(RouteFiltersReq filters, int clientId)
     {
         using SqlConnection connection = ConnectionFactory.GetConnection();
         await connection.OpenAsync();
@@ -89,7 +89,7 @@ public class RouteDao
 
         string prc = "PrcGetRoutes";
 
-        IEnumerable<RouteModel> routes = await connection.QueryAsync<RouteModel>(prc, parameters, commandType: CommandType.StoredProcedure);
+        IEnumerable<RouteTO> routes = await connection.QueryAsync<RouteTO>(prc, parameters, commandType: CommandType.StoredProcedure);
 
         if (routes == null || !routes.Any())
         {
@@ -101,7 +101,7 @@ public class RouteDao
         return (routes, totalCount);
     }
 
-    public async Task<RouteDetail?> GetRouteDetail(int routeId, int clientId)
+    public async Task<RouteDetailTO?> GetRouteDetail(int routeId, int clientId)
     {
         using SqlConnection connection = ConnectionFactory.GetConnection();
         await connection.OpenAsync();
@@ -114,7 +114,7 @@ public class RouteDao
 
         string prc = "PrcGetRouteDetail";
 
-        RouteDetail? routeDetails = await connection.QuerySingleOrDefaultAsync<RouteDetail>(prc, parameters, commandType: CommandType.StoredProcedure);
+        RouteDetailTO? routeDetails = await connection.QuerySingleOrDefaultAsync<RouteDetailTO>(prc, parameters, commandType: CommandType.StoredProcedure);
 
         int errorCode = parameters.Get<int>("@ErrorCode");
         string errorDesc = parameters.Get<string>("@ErrorDesc");
@@ -153,7 +153,7 @@ public class RouteDao
         return routeDetails;
     }
 
-    public async Task<RouteModel?> UpdateRoute(int routeId, int clientId, string userId)
+    public async Task<RouteTO?> UpdateRoute(int routeId, int clientId, string userId)
     {
         using SqlConnection connection = ConnectionFactory.GetConnection();
         await connection.OpenAsync();
@@ -165,7 +165,7 @@ public class RouteDao
         parameters.Add("@ErrorCode", dbType: DbType.Int32, direction: ParameterDirection.Output);
         parameters.Add("@ErrorDesc", dbType: DbType.String, size: 200, direction: ParameterDirection.Output);
 
-        RouteModel? route = await connection.QuerySingleOrDefaultAsync<RouteModel>("PrcUpdateRoute", parameters, commandType: CommandType.StoredProcedure);
+        RouteTO? route = await connection.QuerySingleOrDefaultAsync<RouteTO>("PrcUpdateRoute", parameters, commandType: CommandType.StoredProcedure);
 
         int errCode = parameters.Get<int>("@ErrorCode");
         string errDesc = parameters.Get<string>("@ErrorDesc");
@@ -177,7 +177,7 @@ public class RouteDao
         return route;
     }
 
-    public async Task<RouteModel?> CancelRoute(int Id, int clientId, string userId)
+    public async Task<RouteTO?> CancelRoute(int Id, int clientId, string userId)
     {
         using SqlConnection connection = ConnectionFactory.GetConnection();
         await connection.OpenAsync();
@@ -189,7 +189,7 @@ public class RouteDao
         parameters.Add("@ErrorCode", dbType: DbType.Int32, direction: ParameterDirection.Output);
         parameters.Add("@ErrorDesc", dbType: DbType.String, size: 200, direction: ParameterDirection.Output);
 
-        RouteModel? route = await connection.QuerySingleOrDefaultAsync<RouteModel>("PrcCancelRoute", parameters, commandType: CommandType.StoredProcedure);
+        RouteTO? route = await connection.QuerySingleOrDefaultAsync<RouteTO>("PrcCancelRoute", parameters, commandType: CommandType.StoredProcedure);
 
         int errCode = parameters.Get<int>("@ErrorCode");
         string errDesc = parameters.Get<string>("@ErrorDesc");
