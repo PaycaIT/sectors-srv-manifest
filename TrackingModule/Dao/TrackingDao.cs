@@ -62,7 +62,7 @@ public class TrackingDao
         parameters.Add("@ErrorCode", dbType: DbType.Int32, direction: ParameterDirection.Output);
         parameters.Add("@ErrorDesc", dbType: DbType.String, size: 200, direction: ParameterDirection.Output);
 
-        IEnumerable<SOTrackingTO?> soTrackings = await connection.QueryAsync<SOTrackingTO>("PrcCreateSOTracking", parameters, commandType: CommandType.StoredProcedure);
+        IEnumerable<SOTrackingTO?> soTrackings = await connection.QueryAsync<SOTrackingTO>("PrcCreateSOTrackingRoute", parameters, commandType: CommandType.StoredProcedure);
 
         int errCode = parameters.Get<int>("@ErrorCode");
         string errDesc = parameters.Get<string>("@ErrorDesc");

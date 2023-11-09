@@ -2,6 +2,8 @@
 using sectors_srv_manifest.RouteModule.Models;
 using sectors_srv_manifest.RouteModule.Models.Reqs;
 using sectors_srv_manifest.TrackingModule.Dao;
+using sectors_srv_manifest.TrackingModule.Models;
+using System.Collections.Generic;
 
 namespace sectors_srv_manifest.RouteModule.Services;
 
@@ -23,8 +25,13 @@ public class RouteService
             throw new ArgumentException("No se pudo crear la ruta");
 
         }
-        await trackingDao.CreateSOTrackingFromRoute(route.Id, clientId, userId);
-        
+        IEnumerable<SOTrackingTO?> createdTracking = await trackingDao.CreateSOTrackingFromRoute(route.Id, clientId, userId);
+
+        if (createdTracking == null)
+        {
+            throw new ArgumentException("Se creo la ruta pero no los trackings");
+
+        }
         return route;
 }
 
