@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using sectors_service_orders.Auth;
 using sectors_srv_manifest.AuthModule.Exceptions;
