@@ -13,45 +13,36 @@ public class ManifestDao
 {
     public async Task<ManifestModel> CreateManifest(CreateManifestReqModel data, int clientId, string userId)
     {
-        using (SqlConnection connection = ConnectionFactory.GetConnection())
+        using SqlConnection connection = ConnectionFactory.GetConnection();
+        var errorCode = new SqlParameter("@ErrorCode", SqlDbType.Int)
         {
-            var errorCode = new SqlParameter("@ErrorCode", System.Data.SqlDbType.Int)
-            {
-                Direction = System.Data.ParameterDirection.Output
-            };
+            Direction = ParameterDirection.Output
+        };
 
-            var errorDesc = new SqlParameter("@ErrorDesc", System.Data.SqlDbType.NVarChar, 200)
-            {
-                Direction = System.Data.ParameterDirection.Output
-            };
+        var errorDesc = new SqlParameter("@ErrorDesc", SqlDbType.NVarChar, 200)
+        {
+            Direction = ParameterDirection.Output
+        };
 
-            var parameters = new DynamicParameters();
-            parameters.Add("@CourierId", data.CourierId);
-            parameters.Add("@SectorId", data.SectorId);
-            parameters.Add("@ClientId", clientId);
-            parameters.Add("@CreatedBy", userId);
-            parameters.Add("@ErrorCode", dbType: System.Data.DbType.Int32, direction: System.Data.ParameterDirection.Output);
-            parameters.Add("@ErrorDesc", dbType: System.Data.DbType.String, size: 200, direction: System.Data.ParameterDirection.Output);
+        var parameters = new DynamicParameters();
+        parameters.Add("@CourierId", data.CourierId);
+        parameters.Add("@SectorId", data.SectorId);
+        parameters.Add("@ClientId", clientId);
+        parameters.Add("@CreatedBy", userId);
+        parameters.Add("@ErrorCode", dbType: DbType.Int32, direction: ParameterDirection.Output);
+        parameters.Add("@ErrorDesc", dbType: DbType.String, size: 200, direction: ParameterDirection.Output);
 
-            string? jsonResult = await connection.QuerySingleOrDefaultAsync<string>("PrcCreateManifest", parameters, commandType: System.Data.CommandType.StoredProcedure);
+        ManifestModel? manifest = await connection.QuerySingleOrDefaultAsync<ManifestModel>("PrcCreateManifest", parameters, commandType: CommandType.StoredProcedure);
 
-            int errCode = parameters.Get<int>("@ErrorCode");
-            string errDesc = parameters.Get<string>("@ErrorDesc");
+        int errCode = parameters.Get<int>("@ErrorCode");
+        string errDesc = parameters.Get<string>("@ErrorDesc");
 
-            if (errCode != 0 || jsonResult == null)
-            {
-                throw new BadRequestException(errDesc);
-            }
-
-            ManifestModel manifest = JsonSerializer.Deserialize<ManifestModel>(jsonResult);
-
-            if (manifest == null)
-            {
-                throw new ArgumentException("Error al crear el manifiesto");
-            }
-
-            return manifest;
+        if (errCode != 0 || manifest == null)
+        {
+            throw new BadRequestException(errDesc);
         }
+
+        return manifest;
     }
 
     public async Task<ManifestModel> GetSingleManifest(int id, int clientId)
@@ -75,108 +66,82 @@ public class ManifestDao
 	        INNER JOIN Client ON Client.Id = Manifest.ClientId
             INNER JOIN Sector ON Manifest.SectorId = Sector.Id
 	        WHERE Manifest.Id = @Id and Manifest.ClientId = @ClientId
-	        FOR JSON PATH, WITHOUT_ARRAY_WRAPPER;";
+	        ;";
 
-        using (SqlConnection connection = ConnectionFactory.GetConnection())
+        using SqlConnection connection = ConnectionFactory.GetConnection();
+        await connection.OpenAsync();
+        ManifestModel? manifest = await connection.QuerySingleOrDefaultAsync<ManifestModel>(sql, new { Id = id, ClientId = clientId });
+
+        if (manifest == null)
         {
-            await connection.OpenAsync();
-            string? jsonResult = await connection.QuerySingleOrDefaultAsync<string>(sql, new { Id = id, ClientId = clientId });
-
-            if (jsonResult == null)
-            {
-                throw new EntityNotFoundException("Manifiesto no existe");
-            }
-
-            ManifestModel manifest = JsonSerializer.Deserialize<ManifestModel>(jsonResult);
-
-            if (manifest == null)
-            {
-                throw new ArgumentException("Error al obtener el manifiesto");
-            }
-
-            return manifest;
+            throw new EntityNotFoundException("Manifiesto no existe");
         }
+
+        return manifest;
     }
 
     public async Task<(IEnumerable<ManifestModel>, int)> GetManyManifest(ManifestFiltersReqModel filters, int clientId)
     {
-        using (SqlConnection connection = ConnectionFactory.GetConnection())
+        using SqlConnection connection = ConnectionFactory.GetConnection();
+        await connection.OpenAsync();
+
+        var parameters = new DynamicParameters();
+        parameters.Add("@CreatedByFrom", filters.CreatedByFrom);
+        parameters.Add("@CreatedByTo", filters.CreatedByTo);
+        parameters.Add("@Status", filters.Status);
+        parameters.Add("@PageNumber", filters.PageNumber);
+        parameters.Add("@PageSize", filters.PageSize);
+        parameters.Add("@SortColumn", filters.SortColumn);
+        parameters.Add("@SortOrder", filters.SortOrder);
+        parameters.Add("@ClientId", clientId);
+        parameters.Add("@TotalCount", dbType: DbType.Int32, direction: ParameterDirection.Output);
+
+        string prc = "PrcGetManifests";
+
+        IEnumerable<ManifestModel> manifests = await connection.QueryAsync<ManifestModel>(prc, parameters, commandType: CommandType.StoredProcedure);
+
+        if (manifests == null || !manifests.Any())
         {
-            await connection.OpenAsync();
-
-            var parameters = new DynamicParameters();
-            parameters.Add("@CreatedByFrom", filters.CreatedByFrom);
-            parameters.Add("@CreatedByTo", filters.CreatedByTo);
-            parameters.Add("@Status", filters.Status);
-            parameters.Add("@PageNumber", filters.PageNumber);
-            parameters.Add("@PageSize", filters.PageSize);
-            parameters.Add("@SortColumn", filters.SortColumn);
-            parameters.Add("@SortOrder", filters.SortOrder);
-            parameters.Add("@ClientId", clientId);
-            parameters.Add("@TotalCount", dbType: DbType.Int32, direction: ParameterDirection.Output);
-
-            string prc = "PrcGetManifests";
-
-            var resultJson = await connection.QueryAsync<string>(prc, parameters, commandType: CommandType.StoredProcedure);
-
-            if (resultJson == null || resultJson.Count() == 0)
-            {
-                throw new ArgumentException("Error al obtener los manifiestos");
-            }
-
-            int totalCount = parameters.Get<int>("@TotalCount");
-            IEnumerable<ManifestModel> manifests = JsonSerializer.Deserialize<IEnumerable<ManifestModel>>(String.Join("", resultJson));
-
-            if (manifests == null)
-            {
-                throw new ArgumentException("Error al obtener los manifiestos");
-            }
-
-            return (manifests, totalCount);
+            throw new ArgumentException("Error al obtener los manifiestos");
         }
+
+        int totalCount = parameters.Get<int>("@TotalCount");
+
+        return (manifests, totalCount);
     }
 
-    public async Task<ManifestModel> UpdateManifest(UpdateManifestReqModel data, int clientId, string userId)
+    public async Task<ManifestModel?> UpdateManifest(UpdateManifestReqModel data, int clientId, string userId)
     {
-        using (SqlConnection connection = ConnectionFactory.GetConnection())
+        using SqlConnection connection = ConnectionFactory.GetConnection();
+        await connection.OpenAsync();
+        var parameters = new DynamicParameters();
+        parameters.Add("@Id", data.Id);
+        parameters.Add("@CourierId", data.CourierId);
+        parameters.Add("@SectorId", data.SectorId);
+        parameters.Add("@ClientId", clientId);
+        parameters.Add("@UpdatedBy", userId);
+        parameters.Add("@Status", data.Status);
+        parameters.Add("@UpdatedRows", dbType: DbType.Int32, direction: ParameterDirection.Output);
+        parameters.Add("@ErrorCode", dbType: DbType.Int32, direction: ParameterDirection.Output);
+        parameters.Add("@ErrorDesc", dbType: DbType.String, size: 200, direction: ParameterDirection.Output);
+
+        ManifestModel? manifest = await connection.QuerySingleOrDefaultAsync<ManifestModel>("PrcUpdateManifest", parameters, commandType: CommandType.StoredProcedure);
+
+        int affectedRows = parameters.Get<int>("@UpdatedRows");
+        int errCode = parameters.Get<int>("@ErrorCode");
+        string errDesc = parameters.Get<string>("@ErrorDesc");
+
+        if (affectedRows == 0)
         {
-            await connection.OpenAsync();
-            var parameters = new DynamicParameters();
-            parameters.Add("@Id", data.Id);
-            parameters.Add("@CourierId", data.CourierId);
-            parameters.Add("@SectorId", data.SectorId);
-            parameters.Add("@ClientId", clientId);
-            parameters.Add("@UpdatedBy", userId);
-            parameters.Add("@Status", data.Status);
-            parameters.Add("@UpdatedRows", dbType: System.Data.DbType.Int32, direction: System.Data.ParameterDirection.Output);
-            parameters.Add("@ErrorCode", dbType: System.Data.DbType.Int32, direction: System.Data.ParameterDirection.Output);
-            parameters.Add("@ErrorDesc", dbType: System.Data.DbType.String, size: 200, direction: System.Data.ParameterDirection.Output);
-
-            string? jsonResult = await connection.QuerySingleOrDefaultAsync<string>("PrcUpdateManifest", parameters, commandType: System.Data.CommandType.StoredProcedure);
-
-            int affectedRows = parameters.Get<int>("@UpdatedRows");
-            int errCode = parameters.Get<int>("@ErrorCode");
-            string errDesc = parameters.Get<string>("@ErrorDesc");
-
-            if (affectedRows == 0)
-            {
-                throw new EntityNotFoundException("Manifiesto no existe");
-            }
-
-            if (errCode != 0 || jsonResult == null)
-            {
-                throw new ArgumentException(errDesc);
-            }
-
-            ManifestModel manifest = JsonSerializer.Deserialize<ManifestModel>(jsonResult);
-
-            if (manifest == null)
-            {
-                throw new ArgumentException("Error al crear el manifiesto");
-            }
-
-            return manifest;
+            throw new EntityNotFoundException("Manifiesto no existe");
         }
+
+        if (errCode != 0 || manifest == null)
+        {
+            throw new ArgumentException(errDesc);
+        }
+
+        return manifest;
     }
 
     public async Task SoftDeleteManifest(int Id, int clientId, string userId)
@@ -187,76 +152,64 @@ public class ManifestDao
             Where Id = @Id and ClientId = @ClientId;
         ";
 
-        using (SqlConnection connection = ConnectionFactory.GetConnection())
-        {
-            await connection.OpenAsync();
-            int rowsAffected = await connection.ExecuteAsync(sql, new { Id = Id, ClientId = clientId });
+        using SqlConnection connection = ConnectionFactory.GetConnection();
+        await connection.OpenAsync();
+        int rowsAffected = await connection.ExecuteAsync(sql, new { Id = Id, ClientId = clientId });
 
-            if (rowsAffected == 0)
-            {
-                throw new EntityNotFoundException("Manifiesto no existe");
-            }
+        if (rowsAffected == 0)
+        {
+            throw new EntityNotFoundException("Manifiesto no existe");
         }
     }
 
-    public async Task<ManifestModel> SmartAssociate(string serviceOrderExternalId, int sectorId, int clientId, string userId, bool force = false)
+    public async Task<ManifestModel?> SmartAssociate(string serviceOrderExternalId, int sectorId, int clientId, string userId, bool force = false)
     {
-        using (SqlConnection connection = ConnectionFactory.GetConnection())
+        using SqlConnection connection = ConnectionFactory.GetConnection();
+        await connection.OpenAsync();
+
+        // Initialize parameters with default values and output parameters
+        var parameters = new DynamicParameters();
+        parameters.Add("@ServiceOrderExternalId", serviceOrderExternalId);
+        parameters.Add("@ClientId", clientId);
+        parameters.Add("@SectorId", sectorId);
+        parameters.Add("@CreatedBy", userId);
+        parameters.Add("@Force", force);
+        parameters.Add("@FoundManifestClientOrdinal", dbType: DbType.Int32, direction: ParameterDirection.Output); //Si la OS estaba asociada a un manifesto lo tendremos aqui, aunque no se haya forzado la asociacion 
+        parameters.Add("@FoundManifestSectorCode", dbType: DbType.String, direction: ParameterDirection.Output, size: 100);
+        parameters.Add("@ErrorCode", dbType: DbType.Int32, direction: ParameterDirection.Output);
+        parameters.Add("@ErrorDesc", dbType: DbType.String, direction: ParameterDirection.Output, size: 100);
+
+        // Execute the stored procedure within a transaction
+        ManifestModel? manifest = await connection.QuerySingleOrDefaultAsync<ManifestModel>("dbo.PrcAddServiceOrderToManifest", parameters, commandType: CommandType.StoredProcedure);
+
+        // Read the output values
+        int errorCode = parameters.Get<int>("@ErrorCode");
+        string errorDesc = parameters.Get<string>("@ErrorDesc");
+
+        // Optionally, check errorCode and decide whether to commit
+        if (errorCode != 0 || manifest == null)
         {
-            await connection.OpenAsync();
-
-            // Initialize parameters with default values and output parameters
-            var parameters = new DynamicParameters();
-            parameters.Add("@ServiceOrderExternalId", serviceOrderExternalId);
-            parameters.Add("@ClientId", clientId);
-            parameters.Add("@SectorId", sectorId);
-            parameters.Add("@CreatedBy", userId);
-            parameters.Add("@Force", force);
-            parameters.Add("@FoundManifestClientOrdinal", dbType: DbType.Int32, direction: ParameterDirection.Output); //Si la OS estaba asociada a un manifesto lo tendremos aqui, aunque no se haya forzado la asociacion 
-            parameters.Add("@FoundManifestSectorCode", dbType: DbType.String, direction: ParameterDirection.Output, size: 100);
-            parameters.Add("@ErrorCode", dbType: DbType.Int32, direction: ParameterDirection.Output);
-            parameters.Add("@ErrorDesc", dbType: DbType.String, direction: ParameterDirection.Output, size: 100);
-
-            // Execute the stored procedure within a transaction
-            IEnumerable<string> result = await connection.QueryAsync<string>("dbo.PrcAddServiceOrderToManifest", parameters, commandType: CommandType.StoredProcedure);
-
-            // Read the output values
-            int errorCode = parameters.Get<int>("@ErrorCode");
-            string errorDesc = parameters.Get<string>("@ErrorDesc");
-
-            // Optionally, check errorCode and decide whether to commit
-            if (errorCode != 0 || result.Count() == 0)
+            if (errorCode == 1) // OS no existe
             {
-                if (errorCode == 1) // OS no existe
-                {
-                    throw new EntityNotFoundException(errorDesc);
-                }
-                else if (errorCode == 2) // Sector no existe
-                {
-                    throw new EntityNotFoundException(errorDesc);
-                }
-                else if (errorCode == 3) //OS ya asociada al mismo manifiesto abierto
-                {
-                    throw new OSAlreadyInManifestException(errorDesc);
-                }
-                else if (errorCode == 4) //OS ya asociada a otro manifiesto
-                {
-                    int foundManifestClientOrdinal = parameters.Get<int>("@FoundManifestClientOrdinal");
-                    string foundManifestSectorCode = parameters.Get<string>("@FoundManifestSectorCode");
-                    throw new OSAlreadyInManifestException(errorDesc, foundManifestClientOrdinal.ToString(), foundManifestSectorCode);
-                }
-                throw new Exception(errorDesc);
+                throw new EntityNotFoundException(errorDesc);
             }
-
-            string jsonResult = String.Join("", result);
-            if (jsonResult == null)
+            else if (errorCode == 2) // Sector no existe
             {
-                throw new Exception("Error al obtener el manifiesto");
+                throw new EntityNotFoundException(errorDesc);
             }
-
-            ManifestModel manifest = JsonSerializer.Deserialize<ManifestModel>(jsonResult);
-            return manifest;
+            else if (errorCode == 3) //OS ya asociada al mismo manifiesto abierto
+            {
+                throw new OSAlreadyInManifestException(errorDesc);
+            }
+            else if (errorCode == 4) //OS ya asociada a otro manifiesto
+            {
+                int foundManifestClientOrdinal = parameters.Get<int>("@FoundManifestClientOrdinal");
+                string foundManifestSectorCode = parameters.Get<string>("@FoundManifestSectorCode");
+                throw new OSAlreadyInManifestException(errorDesc, foundManifestClientOrdinal.ToString(), foundManifestSectorCode);
+            }
+            throw new Exception(errorDesc);
         }
+        return manifest;
     }
 
     public async Task<IEnumerable<ManifestServiceOrder>> ListServiceOrders(int manifestId, int clientId)

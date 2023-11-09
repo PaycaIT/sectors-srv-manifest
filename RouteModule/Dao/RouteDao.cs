@@ -33,27 +33,20 @@ public class RouteDao
         parameters.Add("@ErrorCode", dbType: DbType.Int32, direction: ParameterDirection.Output);
         parameters.Add("@ErrorDesc", dbType: DbType.String, size: 200, direction: ParameterDirection.Output);
 
-        string? jsonResult = await connection.QuerySingleOrDefaultAsync<string>("PrcCreateRoute", parameters, commandType: CommandType.StoredProcedure);
+        RouteModel? route = await connection.QuerySingleOrDefaultAsync<RouteModel>("PrcCreateRoute", parameters, commandType: CommandType.StoredProcedure);
 
         int errCode = parameters.Get<int>("@ErrorCode");
         string errDesc = parameters.Get<string>("@ErrorDesc");
 
-        if (errCode != 0 || jsonResult == null)
+        if (errCode != 0 || route == null)
         {
             throw new BadRequestException(errDesc);
-        }
-
-        RouteModel? route = JsonConvert.DeserializeObject<RouteModel>(jsonResult);
-
-        if (route == null)
-        {
-            throw new ArgumentException("Error al crear la ruta");
         }
 
         return route;
     }
 
-    public async Task<RouteModel> GetSingleRoute(int routeId, int clientId)
+    public async Task<RouteModel?> GetSingleRoute(int routeId, int clientId)
     {
         string sql = @"
         SELECT
@@ -68,7 +61,7 @@ public class RouteDao
 
         using SqlConnection connection = ConnectionFactory.GetConnection();
         await connection.OpenAsync();
-        var route = await connection.QuerySingleOrDefaultAsync<RouteModel>(sql, new { RouteId = routeId, ClientId = clientId });
+        RouteModel? route = await connection.QuerySingleOrDefaultAsync<RouteModel>(sql, new { RouteId = routeId, ClientId = clientId });
 
         if (route == null)
         {
@@ -96,22 +89,68 @@ public class RouteDao
 
         string prc = "PrcGetRoutes";
 
-        var resultJson = await connection.QueryAsync<string>(prc, parameters, commandType: CommandType.StoredProcedure);
+        IEnumerable<RouteModel> routes = await connection.QueryAsync<RouteModel>(prc, parameters, commandType: CommandType.StoredProcedure);
 
-        if (resultJson == null || resultJson.Count() == 0)
+        if (routes == null || !routes.Any())
         {
             throw new ArgumentException("Error al obtener las rutas");
         }
 
         int totalCount = parameters.Get<int>("@TotalCount");
-        IEnumerable<RouteModel> routes = JsonConvert.DeserializeObject<IEnumerable<RouteModel>>(String.Join("", resultJson));
-
-        if (routes == null)
-        {
-            throw new ArgumentException("Error al obtener las rutas");
-        }
 
         return (routes, totalCount);
+    }
+
+    public async Task<RouteDetail?> GetRouteDetail(int routeId, int clientId)
+    {
+        using SqlConnection connection = ConnectionFactory.GetConnection();
+        await connection.OpenAsync();
+
+        var parameters = new DynamicParameters();
+        parameters.Add("@RouteId", routeId);
+        parameters.Add("@ClientId", clientId);
+        parameters.Add("@ErrorCode", dbType: DbType.Int32, direction: ParameterDirection.Output);
+        parameters.Add("@ErrorDesc", dbType: DbType.String, size: 200, direction: ParameterDirection.Output);
+
+        string prc = "PrcGetRouteDetail";
+
+        RouteDetail? routeDetails = await connection.QuerySingleOrDefaultAsync<RouteDetail>(prc, parameters, commandType: CommandType.StoredProcedure);
+
+        int errorCode = parameters.Get<int>("@ErrorCode");
+        string errorDesc = parameters.Get<string>("@ErrorDesc");
+
+        if (routeDetails == null)
+        {
+            throw new ArgumentException("Error al obtener los detalles de la ruta");
+        }
+
+        return routeDetails;
+    }
+
+    public async Task<RouteDetailsReq?> GetRouteDetails(int routeId, int clientId)
+    {
+        using SqlConnection connection = ConnectionFactory.GetConnection();
+        await connection.OpenAsync();
+
+        var parameters = new DynamicParameters();
+        parameters.Add("@RouteId", routeId);
+        parameters.Add("@ClientId", clientId);
+        parameters.Add("@ErrorCode", dbType: DbType.Int32, direction: ParameterDirection.Output);
+        parameters.Add("@ErrorDesc", dbType: DbType.String, size: 200, direction: ParameterDirection.Output);
+
+        string prc = "PrcGetRouteDetails";
+
+        RouteDetailsReq? routeDetails = await connection.QuerySingleOrDefaultAsync<RouteDetailsReq>(prc, parameters, commandType: CommandType.StoredProcedure);
+
+        int errorCode = parameters.Get<int>("@ErrorCode");
+        string errorDesc = parameters.Get<string>("@ErrorDesc");
+
+        if (routeDetails == null)
+        {
+            throw new ArgumentException("Error al obtener los detalles de la ruta");
+        }
+
+        return routeDetails;
     }
 
     public async Task<RouteModel?> UpdateRoute(int routeId, int clientId, string userId)
@@ -126,23 +165,15 @@ public class RouteDao
         parameters.Add("@ErrorCode", dbType: DbType.Int32, direction: ParameterDirection.Output);
         parameters.Add("@ErrorDesc", dbType: DbType.String, size: 200, direction: ParameterDirection.Output);
 
-        string? jsonResult = await connection.QuerySingleOrDefaultAsync<string>("PrcUpdateRoute", parameters, commandType: CommandType.StoredProcedure);
+        RouteModel? route = await connection.QuerySingleOrDefaultAsync<RouteModel>("PrcUpdateRoute", parameters, commandType: CommandType.StoredProcedure);
 
         int errCode = parameters.Get<int>("@ErrorCode");
         string errDesc = parameters.Get<string>("@ErrorDesc");
 
-        if (errCode != 0 || jsonResult == null)
+        if (errCode != 0 || route == null)
         {
             throw new ArgumentException(errDesc);
         }
-
-        RouteModel? route = JsonConvert.DeserializeObject<RouteModel>(jsonResult);
-
-        if (route == null)
-        {
-            throw new ArgumentException("Error al actualizar la ruta");
-        }
-
         return route;
     }
 
@@ -158,21 +189,14 @@ public class RouteDao
         parameters.Add("@ErrorCode", dbType: DbType.Int32, direction: ParameterDirection.Output);
         parameters.Add("@ErrorDesc", dbType: DbType.String, size: 200, direction: ParameterDirection.Output);
 
-        string? jsonResult = await connection.QuerySingleOrDefaultAsync<string>("PrcCancelRoute", parameters, commandType: CommandType.StoredProcedure);
+        RouteModel? route = await connection.QuerySingleOrDefaultAsync<RouteModel>("PrcCancelRoute", parameters, commandType: CommandType.StoredProcedure);
 
         int errCode = parameters.Get<int>("@ErrorCode");
         string errDesc = parameters.Get<string>("@ErrorDesc");
 
-        if (errCode != 0 || jsonResult == null)
+        if (errCode != 0 || route == null)
         {
             throw new ArgumentException(errDesc);
-        }
-
-        RouteModel? route = JsonConvert.DeserializeObject<RouteModel>(jsonResult);
-
-        if (route == null)
-        {
-            throw new ArgumentException("Error al cancelar la ruta");
         }
 
         return route;

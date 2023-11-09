@@ -52,4 +52,23 @@ public class RouteService
         }
         await routeDao.CancelRoute(Id, clientId, userId);
     }
+
+    public async Task<RouteDetail?> GetRouteDetail(int routeId, int clientId)
+    {
+        if (routeId <= 0)
+        {
+            throw new ArgumentException("Se requiere un route Id");
+        }
+        return await routeDao.GetRouteDetail(routeId, clientId);
+    }
+
+    public async Task<RouteDetailsReq?> GetRouteDetails(int routeId, int clientId)
+    {
+        if(routeId <= 0)
+        {
+            throw new ArgumentException("Se requiere un route Id");
+        }
+        return await routeDao.GetRouteDetails(routeId, clientId);
+    }
+
 }
