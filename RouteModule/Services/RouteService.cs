@@ -1,12 +1,14 @@
 ﻿using sectors_srv_manifest.RouteModule.Dao;
 using sectors_srv_manifest.RouteModule.Models;
 using sectors_srv_manifest.RouteModule.Models.Reqs;
+using sectors_srv_manifest.TrackingModule.Dao;
 
 namespace sectors_srv_manifest.RouteModule.Services;
 
 public class RouteService
 {
     private readonly RouteDao routeDao = new();
+    private readonly TrackingDao trackingDao = new();
 
     public async Task<RouteTO?> CreateRoute(CreateRouteReq data, int clientId, string userId)
     {
@@ -14,10 +16,19 @@ public class RouteService
         {
             throw new ArgumentException("Se requiere una Ruta valida");
         }
-        return await routeDao.CreateRoute(data, clientId, userId);
-    }
+        RouteTO? route = await routeDao.CreateRoute(data, clientId, userId);
 
-    public async Task<RouteTO?> GetSingleRoute(int routeId, int clientId)
+        if (route == null)
+        {
+            throw new ArgumentException("No se pudo crear la ruta");
+
+        }
+        await trackingDao.CreateSOTrackingFromRoute(route.Id, clientId, userId);
+        
+        return route;
+}
+
+public async Task<RouteTO?> GetSingleRoute(int routeId, int clientId)
     {
         if (routeId <= 0)
         {

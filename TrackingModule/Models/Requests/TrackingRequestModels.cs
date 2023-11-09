@@ -2,7 +2,6 @@
 
 public class CreateSOTrackingReq
 {
-    public int? SOExternalId { get; set; }
     public int? ServiceOrderId { get; set; }
     public string EvExCode { get; set; } = "DR";
 }
