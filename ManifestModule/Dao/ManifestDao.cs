@@ -14,14 +14,14 @@ public class ManifestDao
     public async Task<ManifestModel> CreateManifest(CreateManifestReqModel data, int clientId, string userId)
     {
         using SqlConnection connection = ConnectionFactory.GetConnection();
-        var errorCode = new SqlParameter("@ErrorCode", System.Data.SqlDbType.Int)
+        var errorCode = new SqlParameter("@ErrorCode", SqlDbType.Int)
         {
-            Direction = System.Data.ParameterDirection.Output
+            Direction = ParameterDirection.Output
         };
 
-        var errorDesc = new SqlParameter("@ErrorDesc", System.Data.SqlDbType.NVarChar, 200)
+        var errorDesc = new SqlParameter("@ErrorDesc", SqlDbType.NVarChar, 200)
         {
-            Direction = System.Data.ParameterDirection.Output
+            Direction = ParameterDirection.Output
         };
 
         var parameters = new DynamicParameters();
@@ -29,10 +29,10 @@ public class ManifestDao
         parameters.Add("@SectorId", data.SectorId);
         parameters.Add("@ClientId", clientId);
         parameters.Add("@CreatedBy", userId);
-        parameters.Add("@ErrorCode", dbType: System.Data.DbType.Int32, direction: System.Data.ParameterDirection.Output);
-        parameters.Add("@ErrorDesc", dbType: System.Data.DbType.String, size: 200, direction: System.Data.ParameterDirection.Output);
+        parameters.Add("@ErrorCode", dbType: DbType.Int32, direction: ParameterDirection.Output);
+        parameters.Add("@ErrorDesc", dbType: DbType.String, size: 200, direction: ParameterDirection.Output);
 
-        ManifestModel? manifest = await connection.QuerySingleOrDefaultAsync<ManifestModel>("PrcCreateManifest", parameters, commandType: System.Data.CommandType.StoredProcedure);
+        ManifestModel? manifest = await connection.QuerySingleOrDefaultAsync<ManifestModel>("PrcCreateManifest", parameters, commandType: CommandType.StoredProcedure);
 
         int errCode = parameters.Get<int>("@ErrorCode");
         string errDesc = parameters.Get<string>("@ErrorDesc");
@@ -121,11 +121,11 @@ public class ManifestDao
         parameters.Add("@ClientId", clientId);
         parameters.Add("@UpdatedBy", userId);
         parameters.Add("@Status", data.Status);
-        parameters.Add("@UpdatedRows", dbType: System.Data.DbType.Int32, direction: System.Data.ParameterDirection.Output);
-        parameters.Add("@ErrorCode", dbType: System.Data.DbType.Int32, direction: System.Data.ParameterDirection.Output);
-        parameters.Add("@ErrorDesc", dbType: System.Data.DbType.String, size: 200, direction: System.Data.ParameterDirection.Output);
+        parameters.Add("@UpdatedRows", dbType: DbType.Int32, direction: ParameterDirection.Output);
+        parameters.Add("@ErrorCode", dbType: DbType.Int32, direction: ParameterDirection.Output);
+        parameters.Add("@ErrorDesc", dbType: DbType.String, size: 200, direction: ParameterDirection.Output);
 
-        ManifestModel? manifest = await connection.QuerySingleOrDefaultAsync<ManifestModel>("PrcUpdateManifest", parameters, commandType: System.Data.CommandType.StoredProcedure);
+        ManifestModel? manifest = await connection.QuerySingleOrDefaultAsync<ManifestModel>("PrcUpdateManifest", parameters, commandType: CommandType.StoredProcedure);
 
         int affectedRows = parameters.Get<int>("@UpdatedRows");
         int errCode = parameters.Get<int>("@ErrorCode");
