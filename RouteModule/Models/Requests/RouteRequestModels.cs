@@ -17,12 +17,12 @@ public class UpdateRouteReq : CreateRouteReq
     public int Id { get; set; }
 }
 
-public class RouteDetailReq
+public class RouteDetailsReq
 {
     public int Id { get; set; }
-    public IEnumerable<ServiceOrder>? ServiceOrders { get; set; }
-    [JsonIgnore]
-    public int ClientId { get; set; }
-    public DateTime CreatedAt { get; set; }
     public RouteModel? Route { get; set; }
+    public IEnumerable<ServiceOrder>? ServiceOrders { get; set;}
+    public DateTime CreatedAt { get; set; }
+    [JsonIgnore]
+    public int ClientId { get; set; }  
 }

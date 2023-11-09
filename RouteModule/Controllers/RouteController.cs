@@ -56,6 +56,44 @@ public class RouteController : Controller
         }
     }
 
+    [HttpGet("{routeId}/detail")]
+    public async Task<IActionResult> GetRouteDetail(int routeId)
+    {
+        JwtModel authData = JWTUtils.GetAuthData(User.Claims);
+        try
+        {
+            var route = await routeService.GetRouteDetail(routeId, authData.ClientId);
+            if (route == null)
+            {
+                return NotFound();
+            }
+            return Ok(route);
+        }
+        catch (Exception ex)
+        {
+            return MapExceptionsToHttp(ex);
+        }
+    }
+
+    [HttpGet("{routeId}/details")]
+    public async Task<IActionResult> GetRouteDetails(int routeId)
+    {
+        JwtModel authData = JWTUtils.GetAuthData(User.Claims);
+        try
+        {
+            var route = await routeService.GetRouteDetails(routeId, authData.ClientId);
+            if (route == null)
+            {
+                return NotFound();
+            }
+            return Ok(route);
+        }
+        catch (Exception ex)
+        {
+            return MapExceptionsToHttp(ex);
+        }
+    }
+
     [HttpGet()]
     public async Task<IActionResult> GetRoutes([FromQuery] RouteFiltersReq filters)
     {
