@@ -1,7 +1,7 @@
 ﻿using System.Text.Json.Serialization;
 namespace sectors_srv_manifest.RouteModule.Models;
 
-public class RouteModel
+public class RouteTO
 {
     public int Id { get; set; }
     public DateTime CreatedAt { get; set; }
@@ -17,7 +17,7 @@ public class RouteModel
 
 }
 
-public class RouteDetail
+public class RouteDetailTO
 {
     public int Id { get; set; }
     public int RouteId { get; set; }

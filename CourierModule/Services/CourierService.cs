@@ -8,7 +8,7 @@ public class CourierService
 {
     private readonly CourierDao courierDao = new();
 
-    public async Task<Courier?> CreateCourier(CreateCourierReq data, int cliendId, string userId)
+    public async Task<CourierTO?> CreateCourier(CreateCourierReq data, int cliendId, string userId)
     {
         if (data == null)
         {
@@ -17,7 +17,7 @@ public class CourierService
         return await courierDao.CreateCourier(data, cliendId, userId);
     }
 
-    public async Task<Courier?> GetSingleCourier(int courierId, int clientId)
+    public async Task<CourierTO?> GetSingleCourier(int courierId, int clientId)
     {
         if (courierId <= 0)
         {
@@ -26,7 +26,7 @@ public class CourierService
         return await courierDao.GetSingleCourier(courierId, clientId);
     }
 
-    public async Task<(IEnumerable<Courier>, int)> GetManyCouriers(CourierFiltersReq filters, int clientId)
+    public async Task<(IEnumerable<CourierTO>, int)> GetManyCouriers(CourierFiltersReq filters, int clientId)
     {
         if (filters == null)
         {
@@ -35,7 +35,7 @@ public class CourierService
         return await courierDao.GetManyCouriers(filters, clientId);
     }
 
-    public async Task<Courier?> UpdateCourier(UpdateCourierReq data, int clientId, string userId)
+    public async Task<CourierTO?> UpdateCourier(UpdateCourierReq data, int clientId, string userId)
     {
         if (data == null)
         {
