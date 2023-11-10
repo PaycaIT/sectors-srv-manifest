@@ -5,7 +5,6 @@ using sectors_srv_manifest.ManifestModule.Exceptions;
 using sectors_srv_manifest.ManifestModule.Models;
 using sectors_srv_manifest.ManifestModule.Models.Reqs;
 using System.Data;
-using System.Text.Json;
 
 namespace sectors_srv_manifest.ManifestModule.Dao;
 
@@ -98,7 +97,17 @@ public class ManifestDao
 
         string prc = "PrcGetManifests";
 
-        IEnumerable<ManifestModel> manifests = await connection.QueryAsync<ManifestModel>(prc, parameters, commandType: CommandType.StoredProcedure);
+        IEnumerable<ManifestModel> manifests = await connection.QueryAsync<ManifestModel, Sector, ManifestModel>(
+            prc,
+            (manifest, sector) =>
+            {
+                manifest.Sector = sector;
+                return manifest;
+            },
+            parameters,
+            splitOn: "SectorId",
+            commandType: CommandType.StoredProcedure
+        );
 
         if (manifests == null || !manifests.Any())
         {
@@ -124,6 +133,7 @@ public class ManifestDao
         parameters.Add("@UpdatedRows", dbType: DbType.Int32, direction: ParameterDirection.Output);
         parameters.Add("@ErrorCode", dbType: DbType.Int32, direction: ParameterDirection.Output);
         parameters.Add("@ErrorDesc", dbType: DbType.String, size: 200, direction: ParameterDirection.Output);
+
 
         ManifestModel? manifest = await connection.QuerySingleOrDefaultAsync<ManifestModel>("PrcUpdateManifest", parameters, commandType: CommandType.StoredProcedure);
 

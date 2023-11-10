@@ -8,5 +8,5 @@ public class CustomConfigurationManager
         .AddEnvironmentVariables()
         .Build();
 
-    public static readonly string DbConnectionString = configuration.GetConnectionString("connectionString");
+    public static readonly string DbConnectionString = configuration.GetConnectionString("DefaultConnection");
 }
