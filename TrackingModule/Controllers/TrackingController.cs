@@ -18,22 +18,37 @@ namespace sectors_srv_manifest.TrackingModule.Controllers;
 public class TrackingController : Controller
 {
     private readonly TrackingService trackingService = new();
-    private readonly ILogger<CourierController> logger;
+    private readonly ILogger<TrackingController> logger;
 
-    public TrackingController(ILogger<CourierController> _logger)
+    public TrackingController(ILogger<TrackingController> _logger)
     {
         logger = _logger;
     }
 
 
     [HttpPost()]
-    public async Task<IActionResult> CreateCourier(CreateSOTrackingReq data)
+    public async Task<IActionResult> CreateTracking(CreateSOTrackingReq data)
     {
         JwtModel authData = JWTUtils.GetAuthData(User.Claims);
         try
         {
             var SOTracking = await trackingService.CreateSOTracking(data, authData.ClientId, authData.UserId);
             return Ok(SOTracking);
+        }
+        catch (Exception ex)
+        {
+            return MapExceptionsToHttp(ex);
+        }
+    }
+
+    [HttpGet()]
+    public async Task<IActionResult> GetSOTrackings([FromQuery] TrackingFiltersReq filters)
+    {
+        JwtModel authData = JWTUtils.GetAuthData(User.Claims);
+        try
+        {
+            var (soTrackings, totalCount) = await trackingService.GetSOTrackings(filters, authData.ClientId);
+            return Ok(new { soTrackings, totalCount });
         }
         catch (Exception ex)
         {

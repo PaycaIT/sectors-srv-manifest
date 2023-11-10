@@ -2,14 +2,12 @@
 
 public class TrackingFiltersReq
 {
-    public int Id { get; set; }
-    public int ClientId { get; set; }
-    public int ServiceOrderId { get; set; }
-    public int SOExternalId { get; set; }
-    public string EvExCode { get; set; } = string.Empty;
+    public int? ServiceOrderId { get; set; }
+    public string? SOExternalId { get; set; }
+    public string? EvExCode { get; set; }
     public int PageNumber { get; set; } = 1;
     public int PageSize { get; set; } = 10;
-    public string SortColumn { get; set; } = "CreatedAt";
+    public string SortColumn { get; set; } = "Date";
     public string SortOrder { get; set; } = "desc";
 }
 

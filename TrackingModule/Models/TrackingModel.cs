@@ -8,7 +8,7 @@ public class SOTrackingTO
     [JsonIgnore]
     public int ClientId { get; set; }
     public int ServiceOrderId { get; set; }
-    public int SOExternalId { get; set; }
+    public string SOExternalId { get; set; } = string.Empty;
     public string EvExCode { get; set; } = string.Empty;
     public DateTime Date { get; set; }
 }

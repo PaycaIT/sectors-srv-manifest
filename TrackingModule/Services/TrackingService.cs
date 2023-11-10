@@ -1,6 +1,7 @@
 ﻿using sectors_srv_manifest.TrackingModule.Models.Reqs;
 using sectors_srv_manifest.TrackingModule.Models;
 using sectors_srv_manifest.TrackingModule.Dao;
+using sectors_srv_courier.CourierModule.Dao;
 
 namespace sectors_srv_manifest.TrackingModule.Services;
 
@@ -26,4 +27,15 @@ public class TrackingService
         return await trackingDao.CreateSOTrackingFromRoute(routeId, clientId, userId);
 
     }
+
+    public async Task<(IEnumerable<SOTrackingTO>, int)> GetSOTrackings(TrackingFiltersReq filters, int clientId)
+    {
+        if (filters == null)
+        {
+            throw new ArgumentException("Filtros son requeridos");
+        }
+        return await trackingDao.GetSOTrackings(filters, clientId);
+    }
+
+
 }

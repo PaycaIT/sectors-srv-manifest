@@ -27,15 +27,15 @@ public class RouteService
         }
         IEnumerable<SOTrackingTO?> createdTracking = await trackingDao.CreateSOTrackingFromRoute(route.Id, clientId, userId);
 
-        if (createdTracking == null)
+        if (!createdTracking.Any())
         {
             throw new ArgumentException("Se creo la ruta pero no los trackings");
 
         }
         return route;
-}
+    }
 
-public async Task<RouteTO?> GetSingleRoute(int routeId, int clientId)
+    public async Task<RouteTO?> GetSingleRoute(int routeId, int clientId)
     {
         if (routeId <= 0)
         {

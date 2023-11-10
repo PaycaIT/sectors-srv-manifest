@@ -74,4 +74,34 @@ public class TrackingDao
 
         return soTrackings;
     }
+
+    public async Task<(IEnumerable<SOTrackingTO>, int)> GetSOTrackings(TrackingFiltersReq filters, int clientId)
+    {
+        using SqlConnection connection = ConnectionFactory.GetConnection();
+        await connection.OpenAsync();
+
+        var parameters = new DynamicParameters();
+        parameters.Add("@ClientId", clientId);
+        parameters.Add("@ServiceOrderId", filters.ServiceOrderId);
+        parameters.Add("@SOExternalId", filters.SOExternalId);
+        parameters.Add("@EvExCode", filters.EvExCode);
+        parameters.Add("@PageNumber", filters.PageNumber);
+        parameters.Add("@PageSize", filters.PageSize);
+        parameters.Add("@SortColumn", filters.SortColumn);
+        parameters.Add("@SortOrder", filters.SortOrder);
+        parameters.Add("@TotalCount", dbType: DbType.Int32, direction: ParameterDirection.Output);
+
+        string prc = "PrcGetSOTrackings";
+
+        IEnumerable<SOTrackingTO> soTrackings = await connection.QueryAsync<SOTrackingTO>(prc, parameters, commandType: CommandType.StoredProcedure);
+
+        if (soTrackings == null || !soTrackings.Any())
+        {
+            throw new ArgumentException("Error al obtener los detalles de ServiceOrderTracking");
+        }
+
+        int totalCount = parameters.Get<int>("@TotalCount");
+
+        return (soTrackings, totalCount);
+    }
 }
