@@ -71,6 +71,9 @@ public class ManifestController : Controller
     [HttpPost("find")]
     public async Task<IActionResult> GetManyManifest(ManifestFiltersReqModel filters)
     {
+        logger.LogError("TEST ERROR 2");
+        logger.LogCritical("TEST CRITICAL 2");
+        logger.LogWarning("TEST WARNING 2");
         JwtModel authData = JWTUtils.GetAuthData(User.Claims);
         try
         {
