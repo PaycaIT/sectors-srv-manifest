@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using sectors_service_orders.Auth;
 using sectors_srv_manifest.AuthModule.Exceptions;
@@ -52,6 +52,21 @@ public class ManifestController : Controller
             return MapExceptionsToHttp(ex);
         }
     }
+
+    //[HttpGet("{osExternalId}")]
+    //public async Task<IActionResult> GetManifestByOsExternalId(string osExternalId)
+    //{
+    //    JwtModel authData = JWTUtils.GetAuthData(User.Claims);
+    //    try
+    //    {
+    //        var manifest = await manifestService.GetManifestByOsExternalId(osExternalId, authData.ClientId);
+    //        return Ok(manifest);
+    //    }
+    //    catch (Exception ex)
+    //    {
+    //        return MapExceptionsToHttp(ex);
+    //    }
+    //}
 
     [HttpPost("find")]
     public async Task<IActionResult> GetManyManifest(ManifestFiltersReqModel filters)
@@ -112,6 +127,22 @@ public class ManifestController : Controller
         {
             return MapExceptionsToHttp(ex);
         }
+    }
+
+    [HttpGet("{id}/service-orders")]
+    public async Task<IActionResult> ListManifestServiceOrders(int id)
+    {
+        JwtModel authData = JWTUtils.GetAuthData(User.Claims);
+        try
+        {
+            var manifest = await manifestService.ListServiceOrders(id, authData.ClientId);
+            return Ok(manifest);
+        }
+        catch (Exception ex)
+        {
+            return MapExceptionsToHttp(ex);
+        }
+
     }
 
     //public async Task<IActionResult> AddServiceOrderToManifest([FromBody] string serviceOrderExternalId, [FromBody] bool force = false)

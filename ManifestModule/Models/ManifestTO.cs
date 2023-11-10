@@ -1,13 +1,14 @@
-﻿using System.ComponentModel;
+﻿using sectors_srv_manifest.CourierModule.Models;
+using System.ComponentModel;
 using System.Text.Json.Serialization;
 
 namespace sectors_srv_manifest.ManifestModule.Models;
 
-public class ManifestModel
+public class ManifestTO
 {
     public int Id { get; set; }
-    public Sector? Sector { get; set; }
-    public CourierModel? Courier { get; set; }
+    public SectorTO? Sector { get; set; }
+    public CourierTO? Courier { get; set; }
     public string CreatedBy { get; set; } = "";
     public DateTime CreatedAt { get; set; }
     public string Status { get; set; } = "";
@@ -17,7 +18,7 @@ public class ManifestModel
     public int ClientId { get; set; }
 }
 
-public class Sector
+public class SectorTO
 {
     public int Id { get; set; }
     public string Code { get; set; } = "";
