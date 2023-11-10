@@ -10,7 +10,7 @@ namespace sectors_srv_manifest.ManifestModule.Dao;
 
 public class ManifestDao
 {
-    public async Task<ManifestModel> CreateManifest(CreateManifestReqModel data, int clientId, string userId)
+    public async Task<ManifestTO> CreateManifest(CreateManifestReqModel data, int clientId, string userId)
     {
         using SqlConnection connection = ConnectionFactory.GetConnection();
         var errorCode = new SqlParameter("@ErrorCode", SqlDbType.Int)
@@ -31,7 +31,7 @@ public class ManifestDao
         parameters.Add("@ErrorCode", dbType: DbType.Int32, direction: ParameterDirection.Output);
         parameters.Add("@ErrorDesc", dbType: DbType.String, size: 200, direction: ParameterDirection.Output);
 
-        ManifestModel? manifest = await connection.QuerySingleOrDefaultAsync<ManifestModel>("PrcCreateManifest", parameters, commandType: CommandType.StoredProcedure);
+        ManifestTO? manifest = await connection.QuerySingleOrDefaultAsync<ManifestTO>("PrcCreateManifest", parameters, commandType: CommandType.StoredProcedure);
 
         int errCode = parameters.Get<int>("@ErrorCode");
         string errDesc = parameters.Get<string>("@ErrorDesc");
@@ -44,7 +44,7 @@ public class ManifestDao
         return manifest;
     }
 
-    public async Task<ManifestModel> GetSingleManifest(int id, int clientId)
+    public async Task<ManifestTO> GetSingleManifest(int id, int clientId)
     {
         string sql = @"
 	        SELECT TOP 1
@@ -69,7 +69,7 @@ public class ManifestDao
 
         using SqlConnection connection = ConnectionFactory.GetConnection();
         await connection.OpenAsync();
-        ManifestModel? manifest = await connection.QuerySingleOrDefaultAsync<ManifestModel>(sql, new { Id = id, ClientId = clientId });
+        ManifestTO? manifest = await connection.QuerySingleOrDefaultAsync<ManifestTO>(sql, new { Id = id, ClientId = clientId });
 
         if (manifest == null)
         {
@@ -79,7 +79,7 @@ public class ManifestDao
         return manifest;
     }
 
-    public async Task<(IEnumerable<ManifestModel>, int)> GetManyManifest(ManifestFiltersReqModel filters, int clientId)
+    public async Task<(IEnumerable<ManifestTO>, int)> GetManyManifest(ManifestFiltersReqModel filters, int clientId)
     {
         using SqlConnection connection = ConnectionFactory.GetConnection();
         await connection.OpenAsync();
@@ -97,7 +97,7 @@ public class ManifestDao
 
         string prc = "PrcGetManifests";
 
-        IEnumerable<ManifestModel> manifests = await connection.QueryAsync<ManifestModel, Sector, ManifestModel>(
+        IEnumerable<ManifestTO> manifests = await connection.QueryAsync<ManifestTO, SectorTO, ManifestTO>(
             prc,
             (manifest, sector) =>
             {
@@ -119,7 +119,7 @@ public class ManifestDao
         return (manifests, totalCount);
     }
 
-    public async Task<ManifestModel?> UpdateManifest(UpdateManifestReqModel data, int clientId, string userId)
+    public async Task<ManifestTO?> UpdateManifest(UpdateManifestReqModel data, int clientId, string userId)
     {
         using SqlConnection connection = ConnectionFactory.GetConnection();
         await connection.OpenAsync();
@@ -135,7 +135,7 @@ public class ManifestDao
         parameters.Add("@ErrorDesc", dbType: DbType.String, size: 200, direction: ParameterDirection.Output);
 
 
-        ManifestModel? manifest = await connection.QuerySingleOrDefaultAsync<ManifestModel>("PrcUpdateManifest", parameters, commandType: CommandType.StoredProcedure);
+        ManifestTO? manifest = await connection.QuerySingleOrDefaultAsync<ManifestTO>("PrcUpdateManifest", parameters, commandType: CommandType.StoredProcedure);
 
         int affectedRows = parameters.Get<int>("@UpdatedRows");
         int errCode = parameters.Get<int>("@ErrorCode");
@@ -172,7 +172,7 @@ public class ManifestDao
         }
     }
 
-    public async Task<ManifestModel?> SmartAssociate(string serviceOrderExternalId, int sectorId, int clientId, string userId, bool force = false)
+    public async Task<ManifestTO?> SmartAssociate(string serviceOrderExternalId, int sectorId, int clientId, string userId, bool force = false)
     {
         using SqlConnection connection = ConnectionFactory.GetConnection();
         await connection.OpenAsync();
@@ -190,7 +190,7 @@ public class ManifestDao
         parameters.Add("@ErrorDesc", dbType: DbType.String, direction: ParameterDirection.Output, size: 100);
 
         // Execute the stored procedure within a transaction
-        ManifestModel? manifest = await connection.QuerySingleOrDefaultAsync<ManifestModel>("dbo.PrcAddServiceOrderToManifest", parameters, commandType: CommandType.StoredProcedure);
+        ManifestTO? manifest = await connection.QuerySingleOrDefaultAsync<ManifestTO>("dbo.PrcAddServiceOrderToManifest", parameters, commandType: CommandType.StoredProcedure);
 
         // Read the output values
         int errorCode = parameters.Get<int>("@ErrorCode");
@@ -203,7 +203,7 @@ public class ManifestDao
             {
                 throw new EntityNotFoundException(errorDesc);
             }
-            else if (errorCode == 2) // Sector no existe
+            else if (errorCode == 2) // SectorTO no existe
             {
                 throw new EntityNotFoundException(errorDesc);
             }
@@ -222,7 +222,7 @@ public class ManifestDao
         return manifest;
     }
 
-    public async Task<IEnumerable<ManifestServiceOrder>> ListServiceOrders(int manifestId, int clientId)
+    public async Task<IEnumerable<ManifestServiceOrderTO>> ListServiceOrders(int manifestId, int clientId)
     {
         var parameters = new DynamicParameters();
         parameters.Add("@ManifestId", manifestId);
@@ -230,7 +230,7 @@ public class ManifestDao
         using (SqlConnection connection = ConnectionFactory.GetConnection())
         {
             await connection.OpenAsync();
-            var result = await connection.QueryAsync<ManifestServiceOrder>("PrcGetManifestServiceOrders", parameters, commandType: CommandType.StoredProcedure);
+            var result = await connection.QueryAsync<ManifestServiceOrderTO>("PrcGetManifestServiceOrders", parameters, commandType: CommandType.StoredProcedure);
             if (result == null || result.Count() == 0)
             {
                 throw new EntityNotFoundException("Manifiesto no existe");

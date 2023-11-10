@@ -2,7 +2,7 @@
 
 namespace sectors_srv_manifest.CourierModule.Models;
 
-public class Courier
+public class CourierTO
 {
     public int Id { get; set; }
     public string Name { get; set; } = string.Empty;

@@ -1,5 +1,4 @@
-﻿using sectors_srv_manifest.CourierModule.Models;
-using sectors_srv_manifest.ManifestModule.Models;
+﻿using sectors_srv_manifest.TrackingModule.Models;
 using System.Text.Json.Serialization;
 
 namespace sectors_srv_manifest.RouteModule.Models.Reqs;
@@ -20,8 +19,8 @@ public class UpdateRouteReq : CreateRouteReq
 public class RouteDetailsReq
 {
     public int Id { get; set; }
-    public RouteModel? Route { get; set; }
-    public IEnumerable<ServiceOrder>? ServiceOrders { get; set;}
+    public RouteTO? Route { get; set; }
+    public IEnumerable<ServiceOrderTO>? ServiceOrders { get; set;}
     public DateTime CreatedAt { get; set; }
     [JsonIgnore]
     public int ClientId { get; set; }  
