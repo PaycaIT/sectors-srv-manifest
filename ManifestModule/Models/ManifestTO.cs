@@ -1,4 +1,5 @@
 ﻿using sectors_srv_manifest.CourierModule.Models;
+using sectors_srv_manifest.TrackingModule.Models;
 using System.ComponentModel;
 using System.Text.Json.Serialization;
 
@@ -31,4 +32,9 @@ public enum ManifestStatusEnum
     InProgress,
     Completed,
     Closed
+}
+
+public class ManifestDetail{
+    public int Id { get; set; }
+    public IEnumerable<ServiceOrderTO>? ServiceOrders { get; set; }
 }
