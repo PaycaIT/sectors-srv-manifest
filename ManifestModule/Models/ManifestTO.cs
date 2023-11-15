@@ -17,6 +17,8 @@ public class ManifestTO
     public int OsCount { get; set; }
     [JsonIgnore]
     public int ClientId { get; set; }
+    public int? SectorId { get; set; }
+    public string? SectorCode { get; set; }
 }
 
 public class SectorTO

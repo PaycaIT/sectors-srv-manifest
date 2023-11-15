@@ -97,15 +97,9 @@ public class ManifestDao
 
         string prc = "PrcGetManifests";
 
-        IEnumerable<ManifestTO> manifests = await connection.QueryAsync<ManifestTO, SectorTO, ManifestTO>(
+        IEnumerable<ManifestTO> manifests = await connection.QueryAsync<ManifestTO>(
             prc,
-            (manifest, sector) =>
-            {
-                manifest.Sector = sector;
-                return manifest;
-            },
             parameters,
-            splitOn: "SectorId",
             commandType: CommandType.StoredProcedure
         );
 
