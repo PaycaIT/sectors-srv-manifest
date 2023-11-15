@@ -29,6 +29,8 @@ public class CourierDao
         parameters.Add("@Name", data.Name);
         parameters.Add("@PersonalId", data.PersonalId);
         parameters.Add("@VehiclePlate", data.VehiclePlate);
+        parameters.Add("@Email", data.Email);
+        parameters.Add("@Phone", data.Phone);
         parameters.Add("@ClientId", clientId);
         parameters.Add("@CreatedBy", userId);
         parameters.Add("@ErrorCode", dbType: DbType.Int32, direction: ParameterDirection.Output);
@@ -55,6 +57,8 @@ public class CourierDao
             Courier.Name,
             Courier.PersonalId,
             Courier.VehiclePlate,
+		    Courier.Email,
+		    Courier.Phone,
             Courier.CreatedAt,
             Courier.CreatedBy
         FROM Courier
@@ -81,6 +85,8 @@ public class CourierDao
         parameters.Add("@Name", filters.Name);
         parameters.Add("@PersonalId", filters.PersonalId);
         parameters.Add("@VehiclePlate", filters.VehiclePlate);
+        parameters.Add("@Email", filters.Email);
+        parameters.Add("@Phone", filters.Phone);
         parameters.Add("@PageNumber", filters.PageNumber);
         parameters.Add("@PageSize", filters.PageSize);
         parameters.Add("@SortColumn", filters.SortColumn);
@@ -112,6 +118,8 @@ public class CourierDao
         parameters.Add("@Name", data.Name);
         parameters.Add("@PersonalId", data.PersonalId);
         parameters.Add("@VehiclePlate", data.VehiclePlate);
+        parameters.Add("@Email", data.Email);
+        parameters.Add("@Phone", data.Phone);
         parameters.Add("@ClientId", clientId);
         parameters.Add("@UpdatedBy", userId);
         parameters.Add("@UpdatedRows", dbType: DbType.Int32, direction: ParameterDirection.Output);
