@@ -47,8 +47,8 @@ public class TrackingController : Controller
         JwtModel authData = JWTUtils.GetAuthData(User.Claims);
         try
         {
-            var (soTrackings, totalCount) = await trackingService.GetSOTrackings(filters, authData.ClientId);
-            return Ok(new { soTrackings, totalCount });
+            var paginatedResponse = await trackingService.GetSOTrackings(filters, authData.ClientId);
+            return Ok(paginatedResponse);
         }
         catch (Exception ex)
         {

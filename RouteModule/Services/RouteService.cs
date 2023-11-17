@@ -1,4 +1,5 @@
-﻿using sectors_srv_manifest.RouteModule.Dao;
+﻿using sectors_srv_manifest.ManifestModule.Models;
+using sectors_srv_manifest.RouteModule.Dao;
 using sectors_srv_manifest.RouteModule.Models;
 using sectors_srv_manifest.RouteModule.Models.Reqs;
 using sectors_srv_manifest.TrackingModule.Dao;
@@ -44,13 +45,20 @@ public class RouteService
         return await routeDao.GetSingleRoute(routeId, clientId);
     }
 
-    public async Task<(IEnumerable<RouteTO>, int)> GetManyRoutes(RouteFiltersReq filters, int clientId)
+    public async Task<PaginatedResponse<RouteTO>> GetManyRoutes(RouteFiltersReq filters, int clientId)
     {
         if (filters == null)
         {
             throw new ArgumentException("Filtros son requeridos");
         }
-        return await routeDao.GetManyRoutes(filters, clientId);
+        var (items, totalCount) = await routeDao.GetManyRoutes(filters, clientId);
+        return new PaginatedResponse<RouteTO>
+        {
+            Items = items,
+            Total = totalCount,
+            PageNumber = filters.PageNumber,
+            PageSize = filters.PageSize
+        };
     }
 
     public async Task<RouteTO?> UpdateRoute(int routeId, int clientId, string userId)

@@ -2,6 +2,7 @@
 using sectors_srv_manifest.TrackingModule.Models;
 using sectors_srv_manifest.TrackingModule.Dao;
 using sectors_srv_courier.CourierModule.Dao;
+using sectors_srv_manifest.ManifestModule.Models;
 
 namespace sectors_srv_manifest.TrackingModule.Services;
 
@@ -28,13 +29,20 @@ public class TrackingService
 
     }
 
-    public async Task<(IEnumerable<SOTrackingTO>, int)> GetSOTrackings(TrackingFiltersReq filters, int clientId)
+    public async Task<PaginatedResponse<SOTrackingTO>> GetSOTrackings(TrackingFiltersReq filters, int clientId)
     {
         if (filters == null)
         {
             throw new ArgumentException("Filtros son requeridos");
         }
-        return await trackingDao.GetSOTrackings(filters, clientId);
+        var (items, totalCount) = await trackingDao.GetSOTrackings(filters, clientId);
+        return new PaginatedResponse<SOTrackingTO>
+        {
+            Items = items,
+            Total = totalCount,
+            PageNumber = filters.PageNumber,
+            PageSize = filters.PageSize
+        };
     }
 
 

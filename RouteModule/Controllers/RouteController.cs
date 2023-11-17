@@ -100,8 +100,8 @@ public class RouteController : Controller
         JwtModel authData = JWTUtils.GetAuthData(User.Claims);
         try
         {
-            var (routes, totalCount) = await routeService.GetManyRoutes(filters, authData.ClientId);
-            return Ok(new { routes, totalCount });
+            var paginatedResponse = await routeService.GetManyRoutes(filters, authData.ClientId);
+            return Ok(paginatedResponse);
         }
         catch (Exception ex)
         {
