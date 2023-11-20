@@ -6,4 +6,7 @@ public class ManifestServiceOrderTO
     public string ExternalId { get; set; } = "";
     public string Client { get; set; } = "";
     public string RecipientAddress { get; set; } = "";
+    public string RecipientName { get; set; } = "";
+
+
 }
