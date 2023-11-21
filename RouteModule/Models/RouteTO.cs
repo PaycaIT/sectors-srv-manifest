@@ -6,7 +6,6 @@ public class RouteTO
     public int Id { get; set; }
     public DateTime CreatedAt { get; set; }
     public string CreatedBy { get; set; } = string.Empty;
-    public int StartingManifestId { get; set; }
     public int CourierId { get; set; }
     public string Status { get; set; } = string.Empty;
     public string? UpdatedBy { get; set; } = string.Empty;

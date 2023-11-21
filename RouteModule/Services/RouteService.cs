@@ -26,6 +26,14 @@ public class RouteService
             throw new ArgumentException("No se pudo crear la ruta");
 
         }
+
+        RouteDetailTO? routeAssigned = await routeDao.AssignSOToRoute(data, route.Id,  clientId, userId);
+
+        if (routeAssigned == null)
+        {
+            throw new ArgumentException("No se pudieron asignar OS a la nueva ruta");
+
+        }
         IEnumerable<SOTrackingTO?> createdTracking = await trackingDao.CreateSOTrackingFromRoute(route.Id, clientId, userId);
 
         if (!createdTracking.Any())

@@ -1,4 +1,4 @@
-﻿using sectors_srv_manifest.TrackingModule.Models;
+using sectors_srv_manifest.TrackingModule.Models;
 using System.Text.Json.Serialization;
 
 namespace sectors_srv_manifest.RouteModule.Models.Reqs;

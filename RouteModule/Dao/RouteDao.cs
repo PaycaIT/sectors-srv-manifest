@@ -77,7 +77,6 @@ public class RouteDao
         await connection.OpenAsync();
 
         var parameters = new DynamicParameters();
-        parameters.Add("@StartingManifestId", filters.StartingManifestId);
         parameters.Add("@CourierId", filters.CourierId);
         parameters.Add("@Status", filters.Status);
         parameters.Add("@PageNumber", filters.PageNumber);
@@ -197,6 +196,41 @@ public class RouteDao
         if (errCode != 0 || route == null)
         {
             throw new ArgumentException(errDesc);
+        }
+
+        return route;
+    }
+
+    public async Task<RouteDetailTO?> AssignSOToRoute(CreateRouteReq data, int routeId, int clientId, string userId)
+    {
+        using SqlConnection connection = ConnectionFactory.GetConnection();
+
+        var errorCode = new SqlParameter("@ErrorCode", SqlDbType.Int)
+        {
+            Direction = ParameterDirection.Output
+        };
+
+        var errorDesc = new SqlParameter("@ErrorDesc", SqlDbType.NVarChar, 200)
+        {
+            Direction = ParameterDirection.Output
+        };
+
+        var parameters = new DynamicParameters();
+        parameters.Add("@StartingManifestId", data.StartingManifestId);
+        parameters.Add("@RouteId", routeId);
+        parameters.Add("@ClientId", clientId);
+        parameters.Add("@CreatedBy", userId);
+        parameters.Add("@ErrorCode", dbType: DbType.Int32, direction: ParameterDirection.Output);
+        parameters.Add("@ErrorDesc", dbType: DbType.String, size: 200, direction: ParameterDirection.Output);
+
+        RouteDetailTO? route = await connection.QuerySingleOrDefaultAsync<RouteDetailTO>("PrcAssignServiceOrdersToRoute", parameters, commandType: CommandType.StoredProcedure);
+
+        int errCode = parameters.Get<int>("@ErrorCode");
+        string errDesc = parameters.Get<string>("@ErrorDesc");
+
+        if (errCode != 0 || route == null)
+        {
+            throw new BadRequestException(errDesc);
         }
 
         return route;
