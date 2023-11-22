@@ -4,8 +4,10 @@ using sectors_service_orders.Auth;
 using sectors_srv_manifest.AuthModule.Exceptions;
 using sectors_srv_manifest.AuthModule.Models;
 using sectors_srv_manifest.RouteModule.Exceptions;
+using sectors_srv_manifest.RouteModule.Models;
 using sectors_srv_manifest.RouteModule.Models.Reqs;
 using sectors_srv_manifest.RouteModule.Services;
+using sectors_srv_manifest.TrackingModule.Models;
 
 namespace sectors_srv_manifest.RouteModule.Controllers;
 
@@ -26,10 +28,47 @@ public class RouteController : Controller
     public async Task<IActionResult> CreateRoute(CreateRouteReq data)
     {
         JwtModel authData = JWTUtils.GetAuthData(User.Claims);
+        int routeId;
         try
         {
             var route = await routeService.CreateRoute(data, authData.ClientId, authData.UserId);
-            return Ok(route);
+            routeId = route.Id;
+
+            if (route != null)
+            {
+                var responseData = new CreateRouteResponse
+                {
+                    Route = route,
+                    AssignedRoutes = new List<RouteDetailTO>(),
+                    CreatedTrackings = new List<SOTrackingTO>()
+                };
+
+                // Asignar OS a la nueva ruta
+                foreach (var manifestId in data.ManifestIds)
+                {
+                    var assignedRoutes = await routeService.AssignSOToRoute(manifestId, route.Id, authData.ClientId, authData.UserId);
+                    if (assignedRoutes == null || !assignedRoutes.Any())
+                    {
+                        return BadRequest("No se pudieron asignar OS a la nueva ruta");
+                    }
+
+                    responseData.AssignedRoutes.AddRange(assignedRoutes);
+                }
+
+                // Crear trackings a partir de la nueva ruta
+                var createdTrackings = await routeService.CreateSOTrackingsFromRoute(route.Id, authData.ClientId, authData.UserId);
+
+                if (createdTrackings == null || !createdTrackings.Any())
+                {
+                    return BadRequest("Se creo la ruta pero no los trackings");
+                }
+
+                responseData.CreatedTrackings.AddRange(createdTrackings);
+
+                return Ok(responseData);
+            }
+
+            return BadRequest("No se pudo crear la ruta");
         }
         catch (Exception ex)
         {

@@ -37,7 +37,7 @@ public class RouteService
             throw new ArgumentException("Se requieren manifiestos validos para asignar OS");
         }
 
-        var AssignedRoutes = await routeDao.AssignSOToRoute(manifestId, routeId, clientId, userId);
+        IEnumerable<RouteDetailTO?> AssignedRoutes = await routeDao.AssignSOToRoute(manifestId, routeId, clientId, userId);
 
         if (AssignedRoutes == null)
         {
@@ -108,7 +108,7 @@ public class RouteService
         await routeDao.CancelRoute(Id, clientId, userId);
     }
 
-    public async Task<RouteDetailTO?> GetRouteDetail(int routeId, int clientId)
+    public async Task<IEnumerable<RouteDetailTO?>> GetRouteDetail(int routeId, int clientId)
     {
         if (routeId <= 0)
         {

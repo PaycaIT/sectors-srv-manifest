@@ -25,3 +25,10 @@ public class RouteDetailsReq
     [JsonIgnore]
     public int ClientId { get; set; }  
 }
+
+public class CreateRouteResponse
+{
+    public RouteTO? Route { get; set; }
+    public List<RouteDetailTO> AssignedRoutes { get; set; } = new List<RouteDetailTO>();
+    public List<SOTrackingTO> CreatedTrackings { get; set; } = new List<SOTrackingTO>();
+}

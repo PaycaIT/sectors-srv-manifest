@@ -26,7 +26,6 @@ public class RouteDao
         };
 
         var parameters = new DynamicParameters();
-        parameters.Add("@StartingManifestId", data.StartingManifestId);
         parameters.Add("@CourierId", data.CourierId);
         parameters.Add("@ClientId", clientId);
         parameters.Add("@CreatedBy", userId);
@@ -100,7 +99,7 @@ public class RouteDao
         return (routes, totalCount);
     }
 
-    public async Task<RouteDetailTO?> GetRouteDetail(int routeId, int clientId)
+    public async Task<IEnumerable<RouteDetailTO?>> GetRouteDetail(int routeId, int clientId)
     {
         using SqlConnection connection = ConnectionFactory.GetConnection();
         await connection.OpenAsync();
@@ -113,7 +112,7 @@ public class RouteDao
 
         string prc = "PrcGetRouteDetail";
 
-        RouteDetailTO? routeDetails = await connection.QuerySingleOrDefaultAsync<RouteDetailTO>(prc, parameters, commandType: CommandType.StoredProcedure);
+        IEnumerable<RouteDetailTO?> routeDetails = await connection.QueryAsync<RouteDetailTO>(prc, parameters, commandType: CommandType.StoredProcedure);
 
         int errorCode = parameters.Get<int>("@ErrorCode");
         string errorDesc = parameters.Get<string>("@ErrorDesc");
