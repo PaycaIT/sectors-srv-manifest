@@ -1,4 +1,5 @@
-﻿using sectors_srv_manifest.ManifestModule.Models;
+﻿using Microsoft.AspNetCore.Routing;
+using sectors_srv_manifest.ManifestModule.Models;
 using sectors_srv_manifest.RouteModule.Dao;
 using sectors_srv_manifest.RouteModule.Models;
 using sectors_srv_manifest.RouteModule.Models.Reqs;
@@ -15,7 +16,7 @@ public class RouteService
 
     public async Task<RouteTO?> CreateRoute(CreateRouteReq data, int clientId, string userId)
     {
-        if (data.StartingManifestId == null)
+        if (data.ManifestIds == null)
         {
             throw new ArgumentException("Se requiere una Ruta valida");
         }
@@ -26,22 +27,42 @@ public class RouteService
             throw new ArgumentException("No se pudo crear la ruta");
 
         }
+        return route;
+    }
 
-        RouteDetailTO? routeAssigned = await routeDao.AssignSOToRoute(data, route.Id,  clientId, userId);
+    public async Task<IEnumerable<RouteDetailTO?>> AssignSOToRoute(int manifestId, int routeId, int clientId, string userId)
+    {
+        if (manifestId == 0)
+        {
+            throw new ArgumentException("Se requieren manifiestos validos para asignar OS");
+        }
 
-        if (routeAssigned == null)
+        var AssignedRoutes = await routeDao.AssignSOToRoute(manifestId, routeId, clientId, userId);
+
+        if (AssignedRoutes == null)
         {
             throw new ArgumentException("No se pudieron asignar OS a la nueva ruta");
 
         }
-        IEnumerable<SOTrackingTO?> createdTracking = await trackingDao.CreateSOTrackingFromRoute(route.Id, clientId, userId);
 
-        if (!createdTracking.Any())
+        return AssignedRoutes;
+    }
+
+    public async Task<IEnumerable<SOTrackingTO?>> CreateSOTrackingsFromRoute(int routeId, int clientId, string userId)
+    {
+        if (routeId == 0)
+        {
+            throw new ArgumentException("Se requiere una Ruta valida para generar trackings");
+        }
+
+        IEnumerable<SOTrackingTO?> createdTrackings = await trackingDao.CreateSOTrackingFromRoute(routeId, clientId, userId);
+
+        if (!createdTrackings.Any())
         {
             throw new ArgumentException("Se creo la ruta pero no los trackings");
 
         }
-        return route;
+        return createdTrackings;
     }
 
     public async Task<RouteTO?> GetSingleRoute(int routeId, int clientId)
