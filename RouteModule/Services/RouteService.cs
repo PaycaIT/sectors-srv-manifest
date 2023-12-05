@@ -117,7 +117,7 @@ public class RouteService
         return await routeDao.GetRouteDetail(routeId, clientId);
     }
 
-    public async Task<RouteDetailsReq?> GetRouteDetails(int routeId, int clientId)
+    public async Task<IEnumerable<RouteServiceOrderTO>> GetRouteDetails(int routeId, int clientId)
     {
         if(routeId <= 0)
         {

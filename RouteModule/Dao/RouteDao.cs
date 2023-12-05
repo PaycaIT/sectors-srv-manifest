@@ -125,7 +125,7 @@ public class RouteDao
         return routeDetails;
     }
 
-    public async Task<RouteDetailsReq?> GetRouteDetails(int routeId, int clientId)
+    public async Task<IEnumerable<RouteServiceOrderTO>> GetRouteDetails(int routeId, int clientId)
     {
         using SqlConnection connection = ConnectionFactory.GetConnection();
         await connection.OpenAsync();
@@ -133,17 +133,13 @@ public class RouteDao
         var parameters = new DynamicParameters();
         parameters.Add("@RouteId", routeId);
         parameters.Add("@ClientId", clientId);
-        parameters.Add("@ErrorCode", dbType: DbType.Int32, direction: ParameterDirection.Output);
-        parameters.Add("@ErrorDesc", dbType: DbType.String, size: 200, direction: ParameterDirection.Output);
 
-        string prc = "PrcGetRouteDetails";
+        string prc = "PrcGetRouteServiceOrders";
 
-        RouteDetailsReq? routeDetails = await connection.QuerySingleOrDefaultAsync<RouteDetailsReq>(prc, parameters, commandType: CommandType.StoredProcedure);
+        var routeDetails = await connection.QueryAsync<RouteServiceOrderTO>(prc, parameters, commandType: CommandType.StoredProcedure);
 
-        int errorCode = parameters.Get<int>("@ErrorCode");
-        string errorDesc = parameters.Get<string>("@ErrorDesc");
 
-        if (routeDetails == null)
+        if (routeDetails == null || routeDetails.Count() == 0)
         {
             throw new ArgumentException("Error al obtener los detalles de la ruta");
         }
