@@ -126,4 +126,13 @@ public class RouteService
         return await routeDao.GetRouteDetails(routeId, clientId);
     }
 
+    public async Task<IEnumerable<DetailedRoutesData>> GetDetailedRoutesData(int courierId, int clientId)
+    {
+        if (courierId <= 0)
+        {
+            throw new ArgumentException("Se requiere un courier Id válido");
+        }
+        return await routeDao.GetDetailedRoutesData(courierId, clientId);
+    }
+
 }

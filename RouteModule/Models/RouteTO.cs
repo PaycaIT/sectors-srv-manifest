@@ -10,6 +10,8 @@ public class RouteTO
     public string Status { get; set; } = string.Empty;
     public string? UpdatedBy { get; set; } = string.Empty;
     public DateTime? UpdatedAt { get; set; }
+    public DateTime? StartedAt { get; set; }
+    public string? Description { get; set; } = string.Empty;
 
     [JsonIgnore]
     public int ClientId { get; set; }

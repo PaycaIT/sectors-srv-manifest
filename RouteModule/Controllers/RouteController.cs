@@ -133,6 +133,25 @@ public class RouteController : Controller
         }
     }
 
+    [HttpGet("courier-data/{courierId}")]
+    public async Task<IActionResult> GetDetailedRoutesData(int courierId)
+    {
+        JwtModel authData = JWTUtils.GetAuthData(User.Claims);
+        try
+        {
+            var routes = await routeService.GetDetailedRoutesData(courierId, authData.ClientId);
+            if (routes == null)
+            {
+                return NotFound();
+            }
+            return Ok(routes);
+        }
+        catch (Exception ex)
+        {
+            return MapExceptionsToHttp(ex);
+        }
+    }
+
     [HttpGet()]
     public async Task<IActionResult> GetRoutes([FromQuery] RouteFiltersReq filters)
     {
