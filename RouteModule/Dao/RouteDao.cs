@@ -147,6 +147,44 @@ public class RouteDao
         return routeDetails;
     }
 
+    public async Task<IEnumerable<DetailedRoutesData>> GetDetailedRoutesData(int courierId, int clientId)
+    {
+        using SqlConnection connection = ConnectionFactory.GetConnection();
+        await connection.OpenAsync();
+
+        var parameters = new DynamicParameters();
+        parameters.Add("@CourierId", courierId);
+        parameters.Add("@ClientId", clientId);
+
+        string prc = "PrcGetDetailedRoutesData";
+
+        var detailedRoutes = await connection.QueryAsync<DetailedRoutesData, string, DetailedRoutesData>(
+            "PrcGetDetailedRoutesData",
+            (routeData, detailsJson) =>
+            {
+                if(detailsJson != null)
+                {
+                    routeData.Details = JsonConvert.DeserializeObject<List<RouteServiceOrderTO>>(detailsJson);
+                    
+                }
+                return routeData;
+
+            },
+            new { CourierId = courierId, ClientId = clientId },
+            splitOn: "Details",
+            commandType: CommandType.StoredProcedure
+        );
+
+
+
+        if (detailedRoutes == null || detailedRoutes.Count() == 0)
+        {
+            throw new ArgumentException("Error al obtener los detalles de las rutas del courier");
+        }
+
+        return detailedRoutes;
+    }
+
     public async Task<RouteTO?> UpdateRoute(int routeId, int clientId, string userId)
     {
         using SqlConnection connection = ConnectionFactory.GetConnection();
