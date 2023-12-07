@@ -1,4 +1,7 @@
-﻿namespace sectors_srv_manifest.RouteModule.Models;
+﻿using Newtonsoft.Json;
+using sectors_srv_manifest.TrackingModule.Models;
+
+namespace sectors_srv_manifest.RouteModule.Models;
 
 public class RouteServiceOrderTO
 {
@@ -10,10 +13,12 @@ public class RouteServiceOrderTO
     public string RecipientName { get; set; } = "";
     public string RecipientPhone { get; set; } = "";
     public string ReferenceDir { get; set; } = "Por implementar";
+    public SOTrackingTO LastTrackingEvent { get; set; } = new();
 }
 
 public class DetailedRoutesData: RouteTO  
 {
+    [JsonProperty(Order = -1)]
     public List<RouteServiceOrderTO> Details { get; set; } = new List<RouteServiceOrderTO>();
 
 }

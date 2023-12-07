@@ -133,7 +133,7 @@ public class RouteController : Controller
         }
     }
 
-    [HttpGet("data/{courierId}")]
+    [HttpGet("courier-data/{courierId}")]
     public async Task<IActionResult> GetDetailedRoutesData(int courierId)
     {
         JwtModel authData = JWTUtils.GetAuthData(User.Claims);

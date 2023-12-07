@@ -1,5 +1,6 @@
 using Dapper;
 using Microsoft.Data.SqlClient;
+using Microsoft.IdentityModel.Tokens;
 using Newtonsoft.Json;
 using sectors_srv_manifest.Db;
 using sectors_srv_manifest.RouteModule.Exceptions;
@@ -162,7 +163,7 @@ public class RouteDao
             "PrcGetDetailedRoutesData",
             (routeData, detailsJson) =>
             {
-                if(detailsJson != null)
+                if(!detailsJson.IsNullOrEmpty())
                 {
                     routeData.Details = JsonConvert.DeserializeObject<List<RouteServiceOrderTO>>(detailsJson);
                     
