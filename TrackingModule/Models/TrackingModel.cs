@@ -44,3 +44,23 @@ public class ServiceOrderTO
     public DateTime DeletedAt { get; set; }
     public DateTime SoftDeleted { get; set; }
 }
+
+public class ServiceOrderTrackingDetailTO
+{
+    public int Id { get; set; }
+    public int TrackingId { get; set; }
+    public string Image { get; set; } = string.Empty;
+    public float Latitude { get; set; }
+    public float Longitude { get; set; }
+
+}
+
+public class DeliveryDataTO
+{
+    public int Id { get; set; }
+    public int TrackingId { get; set; }
+    public string RecipientName { get; set; } = string.Empty;
+    public string RecipientPersonalId { get; set; } = string.Empty;
+    public string RecipientSignature { get; set; } = string.Empty;
+
+}

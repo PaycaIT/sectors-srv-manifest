@@ -269,4 +269,25 @@ public class RouteDao
 
         return routeDetails;
     }
+
+    public async Task<RouteTO?> StartRoute(int routeId, int clientId)
+    {
+        using SqlConnection connection = ConnectionFactory.GetConnection();
+        await connection.OpenAsync();
+
+        var parameters = new DynamicParameters();
+        parameters.Add("@RouteId", routeId);
+        parameters.Add("@ClientId", clientId);
+
+        RouteTO? route = await connection.QuerySingleOrDefaultAsync<RouteTO>("PrcStartRoute", parameters, commandType: CommandType.StoredProcedure);
+
+        int errCode = parameters.Get<int>("@ErrorCode");
+        string errDesc = parameters.Get<string>("@ErrorDesc");
+
+        if (errCode != 0 || route == null)
+        {
+            throw new ArgumentException(errDesc);
+        }
+        return route;
+    }
 }

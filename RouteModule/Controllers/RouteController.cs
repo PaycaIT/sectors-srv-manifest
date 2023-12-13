@@ -236,4 +236,28 @@ public class RouteController : Controller
             return StatusCode(500, new { message = "Internal Server Error" });
         }
     }
+
+    [HttpPut("{routeId?}/start")]
+    public async Task<IActionResult> StartRoute(int? routeId)
+    {
+        int id = 0;
+        JwtModel authData = JWTUtils.GetAuthData(User.Claims);
+        if (routeId.HasValue)
+        {
+            id = (int)routeId.Value;
+        }
+        try
+        {
+            var route = await routeService.StartRoute(id, authData.ClientId);
+            if (route == null)
+            {
+                return NotFound();
+            }
+            return Ok(route);
+        }
+        catch (Exception ex)
+        {
+            return MapExceptionsToHttp(ex);
+        }
+    }
 }

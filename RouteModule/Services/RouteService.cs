@@ -135,4 +135,13 @@ public class RouteService
         return await routeDao.GetDetailedRoutesData(courierId, clientId);
     }
 
+    public async Task<RouteTO?> StartRoute(int routeId, int clientId)
+    {
+        if (routeId == 0)
+        {
+            throw new ArgumentException("routeId es requerido");
+        }
+        return await routeDao.StartRoute(routeId, clientId);
+    }
+
 }
