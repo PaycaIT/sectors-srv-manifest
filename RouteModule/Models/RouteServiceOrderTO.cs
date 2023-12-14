@@ -13,7 +13,7 @@ public class RouteServiceOrderTO
     public string RecipientName { get; set; } = "";
     public string RecipientPhone { get; set; } = "";
     public string ReferenceDir { get; set; } = "Por implementar";
-    public SOTrackingTO LastTrackingEvent { get; set; } = new();
+    public List<SOTrackingTO> LatestTrackingEvents { get; set; } = new();
 }
 
 public class DetailedRoutesData: RouteTO  
