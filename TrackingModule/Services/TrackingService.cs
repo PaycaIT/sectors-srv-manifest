@@ -47,6 +47,15 @@ public class TrackingService
         };
     }
 
+    public async Task<TriggerEventRes?> TriggerEvent(TriggerEventReq data, int clientId, string userId)
+    {
+        if (data == null)
+        {
+            throw new ArgumentException("Data es requerido");
+        }
+        return await trackingDao.TriggerEvent(data, clientId, userId);
+    }
+
     public async Task<TriggerNobodyHomeEventRes?> TriggerNobodyHomeEvent(TriggerNobodyHomeEventReq data, int clientId, string userId)
     {
         if (data == null)
