@@ -6,6 +6,7 @@ using sectors_srv_manifest.AuthModule.Models;
 using sectors_srv_manifest.CourierModule.Exceptions;
 using sectors_srv_manifest.CourierModule.Models.Reqs;
 using sectors_srv_manifest.CourierModule.Services;
+using sectors_srv_manifest.ManifestModule.Models;
 
 namespace sectors_srv_manifest.CourierModule.Controllers;
 
@@ -62,8 +63,8 @@ public class CourierController : Controller
         JwtModel authData = JWTUtils.GetAuthData(User.Claims);
         try
         {
-            var (couriers, totalCount) = await courierService.GetManyCouriers(filters, authData.ClientId);
-            return Ok(new { couriers, totalCount });
+            var paginatedResponse = await courierService.GetManyCouriers(filters, authData.ClientId);
+            return Ok(paginatedResponse);
         }
         catch (Exception ex)
         {

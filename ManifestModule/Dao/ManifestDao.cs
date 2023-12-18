@@ -97,15 +97,9 @@ public class ManifestDao
 
         string prc = "PrcGetManifests";
 
-        IEnumerable<ManifestTO> manifests = await connection.QueryAsync<ManifestTO, SectorTO, ManifestTO>(
+        IEnumerable<ManifestTO> manifests = await connection.QueryAsync<ManifestTO>(
             prc,
-            (manifest, sector) =>
-            {
-                manifest.Sector = sector;
-                return manifest;
-            },
             parameters,
-            splitOn: "SectorId",
             commandType: CommandType.StoredProcedure
         );
 
@@ -227,17 +221,15 @@ public class ManifestDao
         var parameters = new DynamicParameters();
         parameters.Add("@ManifestId", manifestId);
         parameters.Add("@ClientId", clientId);
-        using (SqlConnection connection = ConnectionFactory.GetConnection())
+        using SqlConnection connection = ConnectionFactory.GetConnection();
+        await connection.OpenAsync();
+        var result = await connection.QueryAsync<ManifestServiceOrderTO>("PrcGetManifestServiceOrders", parameters, commandType: CommandType.StoredProcedure);
+        if (result == null || result.Count() == 0)
         {
-            await connection.OpenAsync();
-            var result = await connection.QueryAsync<ManifestServiceOrderTO>("PrcGetManifestServiceOrders", parameters, commandType: CommandType.StoredProcedure);
-            if (result == null || result.Count() == 0)
-            {
-                throw new EntityNotFoundException("Manifiesto no existe");
-            }
-
-            return result;
+            throw new EntityNotFoundException("Manifiesto no existe");
         }
+
+        return result;
 
     }
 

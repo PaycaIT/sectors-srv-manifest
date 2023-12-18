@@ -1,5 +1,6 @@
 using Dapper;
 using Microsoft.Data.SqlClient;
+using Microsoft.IdentityModel.Tokens;
 using Newtonsoft.Json;
 using sectors_srv_manifest.Db;
 using sectors_srv_manifest.RouteModule.Exceptions;
@@ -26,7 +27,6 @@ public class RouteDao
         };
 
         var parameters = new DynamicParameters();
-        parameters.Add("@StartingManifestId", data.StartingManifestId);
         parameters.Add("@CourierId", data.CourierId);
         parameters.Add("@ClientId", clientId);
         parameters.Add("@CreatedBy", userId);
@@ -77,7 +77,6 @@ public class RouteDao
         await connection.OpenAsync();
 
         var parameters = new DynamicParameters();
-        parameters.Add("@StartingManifestId", filters.StartingManifestId);
         parameters.Add("@CourierId", filters.CourierId);
         parameters.Add("@Status", filters.Status);
         parameters.Add("@PageNumber", filters.PageNumber);
@@ -101,7 +100,7 @@ public class RouteDao
         return (routes, totalCount);
     }
 
-    public async Task<RouteDetailTO?> GetRouteDetail(int routeId, int clientId)
+    public async Task<IEnumerable<RouteDetailTO?>> GetRouteDetail(int routeId, int clientId)
     {
         using SqlConnection connection = ConnectionFactory.GetConnection();
         await connection.OpenAsync();
@@ -114,7 +113,7 @@ public class RouteDao
 
         string prc = "PrcGetRouteDetail";
 
-        RouteDetailTO? routeDetails = await connection.QuerySingleOrDefaultAsync<RouteDetailTO>(prc, parameters, commandType: CommandType.StoredProcedure);
+        IEnumerable<RouteDetailTO?> routeDetails = await connection.QueryAsync<RouteDetailTO>(prc, parameters, commandType: CommandType.StoredProcedure);
 
         int errorCode = parameters.Get<int>("@ErrorCode");
         string errorDesc = parameters.Get<string>("@ErrorDesc");
@@ -127,7 +126,7 @@ public class RouteDao
         return routeDetails;
     }
 
-    public async Task<RouteDetailsReq?> GetRouteDetails(int routeId, int clientId)
+    public async Task<IEnumerable<RouteServiceOrderTO>> GetRouteDetails(int routeId, int clientId)
     {
         using SqlConnection connection = ConnectionFactory.GetConnection();
         await connection.OpenAsync();
@@ -135,22 +134,56 @@ public class RouteDao
         var parameters = new DynamicParameters();
         parameters.Add("@RouteId", routeId);
         parameters.Add("@ClientId", clientId);
-        parameters.Add("@ErrorCode", dbType: DbType.Int32, direction: ParameterDirection.Output);
-        parameters.Add("@ErrorDesc", dbType: DbType.String, size: 200, direction: ParameterDirection.Output);
 
-        string prc = "PrcGetRouteDetails";
+        string prc = "PrcGetRouteServiceOrders";
 
-        RouteDetailsReq? routeDetails = await connection.QuerySingleOrDefaultAsync<RouteDetailsReq>(prc, parameters, commandType: CommandType.StoredProcedure);
+        var routeDetails = await connection.QueryAsync<RouteServiceOrderTO>(prc, parameters, commandType: CommandType.StoredProcedure);
 
-        int errorCode = parameters.Get<int>("@ErrorCode");
-        string errorDesc = parameters.Get<string>("@ErrorDesc");
 
-        if (routeDetails == null)
+        if (routeDetails == null || routeDetails.Count() == 0)
         {
             throw new ArgumentException("Error al obtener los detalles de la ruta");
         }
 
         return routeDetails;
+    }
+
+    public async Task<IEnumerable<DetailedRoutesData>> GetDetailedRoutesData(int courierId, int clientId)
+    {
+        using SqlConnection connection = ConnectionFactory.GetConnection();
+        await connection.OpenAsync();
+
+        var parameters = new DynamicParameters();
+        parameters.Add("@CourierId", courierId);
+        parameters.Add("@ClientId", clientId);
+
+        string prc = "PrcGetDetailedRoutesData";
+
+        var detailedRoutes = await connection.QueryAsync<DetailedRoutesData, string, DetailedRoutesData>(
+            "PrcGetDetailedRoutesData",
+            (routeData, detailsJson) =>
+            {
+                if(!detailsJson.IsNullOrEmpty())
+                {
+                    routeData.Details = JsonConvert.DeserializeObject<List<RouteServiceOrderTO>>(detailsJson);
+                    
+                }
+                return routeData;
+
+            },
+            new { CourierId = courierId, ClientId = clientId },
+            splitOn: "Details",
+            commandType: CommandType.StoredProcedure
+        );
+
+
+
+        if (detailedRoutes == null || detailedRoutes.Count() == 0)
+        {
+            throw new ArgumentException("Error al obtener los detalles de las rutas del courier");
+        }
+
+        return detailedRoutes;
     }
 
     public async Task<RouteTO?> UpdateRoute(int routeId, int clientId, string userId)
@@ -199,6 +232,64 @@ public class RouteDao
             throw new ArgumentException(errDesc);
         }
 
+        return route;
+    }
+
+    public async Task<IEnumerable<RouteDetailTO?>> AssignSOToRoute(int startingManifestId, int routeId, int clientId, string userId)
+    {
+        using SqlConnection connection = ConnectionFactory.GetConnection();
+
+        var errorCode = new SqlParameter("@ErrorCode", SqlDbType.Int)
+        {
+            Direction = ParameterDirection.Output
+        };
+
+        var errorDesc = new SqlParameter("@ErrorDesc", SqlDbType.NVarChar, 200)
+        {
+            Direction = ParameterDirection.Output
+        };
+
+        var parameters = new DynamicParameters();
+        parameters.Add("@StartingManifestId", startingManifestId);
+        parameters.Add("@RouteId", routeId);
+        parameters.Add("@ClientId", clientId);
+        parameters.Add("@CreatedBy", userId);
+        parameters.Add("@ErrorCode", dbType: DbType.Int32, direction: ParameterDirection.Output);
+        parameters.Add("@ErrorDesc", dbType: DbType.String, size: 200, direction: ParameterDirection.Output);
+
+        var routeDetails = await connection.QueryAsync<RouteDetailTO>("PrcAssignServiceOrdersToRoute", parameters, commandType: CommandType.StoredProcedure);
+
+        int errCode = parameters.Get<int>("@ErrorCode");
+        string errDesc = parameters.Get<string>("@ErrorDesc");
+
+        if (errCode != 0 || routeDetails == null)
+        {
+            throw new BadRequestException(errDesc);
+        }
+
+        return routeDetails;
+    }
+
+    public async Task<RouteTO?> StartRoute(int routeId, int clientId)
+    {
+        using SqlConnection connection = ConnectionFactory.GetConnection();
+        await connection.OpenAsync();
+
+        var parameters = new DynamicParameters();
+        parameters.Add("@RouteId", routeId);
+        parameters.Add("@ClientId", clientId);
+        parameters.Add("@ErrorCode", dbType: DbType.Int32, direction: ParameterDirection.Output);
+        parameters.Add("@ErrorDesc", dbType: DbType.String, size: 200, direction: ParameterDirection.Output);
+
+        RouteTO? route = await connection.QuerySingleOrDefaultAsync<RouteTO>("PrcTriggerStartRouteEvent", parameters, commandType: CommandType.StoredProcedure);
+
+        int errCode = parameters.Get<int>("@ErrorCode");
+        string errDesc = parameters.Get<string>("@ErrorDesc");
+
+        if (errCode != 0 || route == null)
+        {
+            throw new ArgumentException(errDesc);
+        }
         return route;
     }
 }

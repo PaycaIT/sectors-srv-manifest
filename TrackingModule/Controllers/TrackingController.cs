@@ -47,8 +47,38 @@ public class TrackingController : Controller
         JwtModel authData = JWTUtils.GetAuthData(User.Claims);
         try
         {
-            var (soTrackings, totalCount) = await trackingService.GetSOTrackings(filters, authData.ClientId);
-            return Ok(new { soTrackings, totalCount });
+            var paginatedResponse = await trackingService.GetSOTrackings(filters, authData.ClientId);
+            return Ok(paginatedResponse);
+        }
+        catch (Exception ex)
+        {
+            return MapExceptionsToHttp(ex);
+        }
+    }
+
+    [HttpPost("event/NH")]
+    public async Task<IActionResult> TriggerNobodyHomeEvent(TriggerNobodyHomeEventReq data)
+    {
+        JwtModel authData = JWTUtils.GetAuthData(User.Claims);
+        try
+        {
+            var result = await trackingService.TriggerNobodyHomeEvent(data, authData.ClientId, authData.UserId);
+            return Ok(result);
+        }
+        catch (Exception ex)
+        {
+            return MapExceptionsToHttp(ex);
+        }
+    }
+
+    [HttpPost("event/Delivered")]
+    public async Task<IActionResult> TriggerDeliveredEvent(TriggerDeliveredEventReq data)
+    {
+        JwtModel authData = JWTUtils.GetAuthData(User.Claims);
+        try
+        {
+            var result = await trackingService.TriggerDeliveredEvent(data, authData.ClientId, authData.UserId);
+            return Ok(result);
         }
         catch (Exception ex)
         {
@@ -86,4 +116,6 @@ public class TrackingController : Controller
             return StatusCode(500, new { message = "Internal Server Error" });
         }
     }
+
+
 }

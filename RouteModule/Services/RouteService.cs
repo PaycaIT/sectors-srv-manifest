@@ -1,4 +1,6 @@
-﻿using sectors_srv_manifest.RouteModule.Dao;
+﻿using Microsoft.AspNetCore.Routing;
+using sectors_srv_manifest.ManifestModule.Models;
+using sectors_srv_manifest.RouteModule.Dao;
 using sectors_srv_manifest.RouteModule.Models;
 using sectors_srv_manifest.RouteModule.Models.Reqs;
 using sectors_srv_manifest.TrackingModule.Dao;
@@ -14,7 +16,7 @@ public class RouteService
 
     public async Task<RouteTO?> CreateRoute(CreateRouteReq data, int clientId, string userId)
     {
-        if (data.StartingManifestId == null)
+        if (data.ManifestIds == null)
         {
             throw new ArgumentException("Se requiere una Ruta valida");
         }
@@ -25,14 +27,42 @@ public class RouteService
             throw new ArgumentException("No se pudo crear la ruta");
 
         }
-        IEnumerable<SOTrackingTO?> createdTracking = await trackingDao.CreateSOTrackingFromRoute(route.Id, clientId, userId);
+        return route;
+    }
 
-        if (!createdTracking.Any())
+    public async Task<IEnumerable<RouteDetailTO?>> AssignSOToRoute(int manifestId, int routeId, int clientId, string userId)
+    {
+        if (manifestId == 0)
+        {
+            throw new ArgumentException("Se requieren manifiestos validos para asignar OS");
+        }
+
+        IEnumerable<RouteDetailTO?> AssignedRoutes = await routeDao.AssignSOToRoute(manifestId, routeId, clientId, userId);
+
+        if (AssignedRoutes == null)
+        {
+            throw new ArgumentException("No se pudieron asignar OS a la nueva ruta");
+
+        }
+
+        return AssignedRoutes;
+    }
+
+    public async Task<IEnumerable<SOTrackingTO?>> CreateSOTrackingsFromRoute(int routeId, int clientId, string userId)
+    {
+        if (routeId == 0)
+        {
+            throw new ArgumentException("Se requiere una Ruta valida para generar trackings");
+        }
+
+        IEnumerable<SOTrackingTO?> createdTrackings = await trackingDao.CreateSOTrackingFromRoute(routeId, clientId, userId);
+
+        if (!createdTrackings.Any())
         {
             throw new ArgumentException("Se creo la ruta pero no los trackings");
 
         }
-        return route;
+        return createdTrackings;
     }
 
     public async Task<RouteTO?> GetSingleRoute(int routeId, int clientId)
@@ -44,13 +74,20 @@ public class RouteService
         return await routeDao.GetSingleRoute(routeId, clientId);
     }
 
-    public async Task<(IEnumerable<RouteTO>, int)> GetManyRoutes(RouteFiltersReq filters, int clientId)
+    public async Task<PaginatedResponse<RouteTO>> GetManyRoutes(RouteFiltersReq filters, int clientId)
     {
         if (filters == null)
         {
             throw new ArgumentException("Filtros son requeridos");
         }
-        return await routeDao.GetManyRoutes(filters, clientId);
+        var (items, totalCount) = await routeDao.GetManyRoutes(filters, clientId);
+        return new PaginatedResponse<RouteTO>
+        {
+            Items = items,
+            Total = totalCount,
+            PageNumber = filters.PageNumber,
+            PageSize = filters.PageSize
+        };
     }
 
     public async Task<RouteTO?> UpdateRoute(int routeId, int clientId, string userId)
@@ -71,7 +108,7 @@ public class RouteService
         await routeDao.CancelRoute(Id, clientId, userId);
     }
 
-    public async Task<RouteDetailTO?> GetRouteDetail(int routeId, int clientId)
+    public async Task<IEnumerable<RouteDetailTO?>> GetRouteDetail(int routeId, int clientId)
     {
         if (routeId <= 0)
         {
@@ -80,13 +117,31 @@ public class RouteService
         return await routeDao.GetRouteDetail(routeId, clientId);
     }
 
-    public async Task<RouteDetailsReq?> GetRouteDetails(int routeId, int clientId)
+    public async Task<IEnumerable<RouteServiceOrderTO>> GetRouteDetails(int routeId, int clientId)
     {
         if(routeId <= 0)
         {
             throw new ArgumentException("Se requiere un route Id");
         }
         return await routeDao.GetRouteDetails(routeId, clientId);
+    }
+
+    public async Task<IEnumerable<DetailedRoutesData>> GetDetailedRoutesData(int courierId, int clientId)
+    {
+        if (courierId <= 0)
+        {
+            throw new ArgumentException("Se requiere un courier Id válido");
+        }
+        return await routeDao.GetDetailedRoutesData(courierId, clientId);
+    }
+
+    public async Task<RouteTO?> StartRoute(int routeId, int clientId)
+    {
+        if (routeId == 0)
+        {
+            throw new ArgumentException("routeId es requerido");
+        }
+        return await routeDao.StartRoute(routeId, clientId);
     }
 
 }

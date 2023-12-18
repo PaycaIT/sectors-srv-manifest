@@ -4,8 +4,10 @@ using sectors_service_orders.Auth;
 using sectors_srv_manifest.AuthModule.Exceptions;
 using sectors_srv_manifest.AuthModule.Models;
 using sectors_srv_manifest.RouteModule.Exceptions;
+using sectors_srv_manifest.RouteModule.Models;
 using sectors_srv_manifest.RouteModule.Models.Reqs;
 using sectors_srv_manifest.RouteModule.Services;
+using sectors_srv_manifest.TrackingModule.Models;
 
 namespace sectors_srv_manifest.RouteModule.Controllers;
 
@@ -26,10 +28,47 @@ public class RouteController : Controller
     public async Task<IActionResult> CreateRoute(CreateRouteReq data)
     {
         JwtModel authData = JWTUtils.GetAuthData(User.Claims);
+        int routeId;
         try
         {
             var route = await routeService.CreateRoute(data, authData.ClientId, authData.UserId);
-            return Ok(route);
+            routeId = route.Id;
+
+            if (route != null)
+            {
+                var responseData = new CreateRouteResponse
+                {
+                    Route = route,
+                    AssignedRoutes = new List<RouteDetailTO>(),
+                    CreatedTrackings = new List<SOTrackingTO>()
+                };
+
+                // Asignar OS a la nueva ruta
+                foreach (var manifestId in data.ManifestIds)
+                {
+                    var assignedRoutes = await routeService.AssignSOToRoute(manifestId, route.Id, authData.ClientId, authData.UserId);
+                    if (assignedRoutes == null || !assignedRoutes.Any())
+                    {
+                        return BadRequest("No se pudieron asignar OS a la nueva ruta");
+                    }
+
+                    responseData.AssignedRoutes.AddRange(assignedRoutes);
+                }
+
+                // Crear trackings a partir de la nueva ruta
+                var createdTrackings = await routeService.CreateSOTrackingsFromRoute(route.Id, authData.ClientId, authData.UserId);
+
+                if (createdTrackings == null || !createdTrackings.Any())
+                {
+                    return BadRequest("Se creo la ruta pero no los trackings");
+                }
+
+                responseData.CreatedTrackings.AddRange(createdTrackings);
+
+                return Ok(responseData);
+            }
+
+            return BadRequest("No se pudo crear la ruta");
         }
         catch (Exception ex)
         {
@@ -94,14 +133,33 @@ public class RouteController : Controller
         }
     }
 
+    [HttpGet("courier-data/{courierId}")]
+    public async Task<IActionResult> GetDetailedRoutesData(int courierId)
+    {
+        JwtModel authData = JWTUtils.GetAuthData(User.Claims);
+        try
+        {
+            var routes = await routeService.GetDetailedRoutesData(courierId, authData.ClientId);
+            if (routes == null)
+            {
+                return NotFound();
+            }
+            return Ok(routes);
+        }
+        catch (Exception ex)
+        {
+            return MapExceptionsToHttp(ex);
+        }
+    }
+
     [HttpGet()]
     public async Task<IActionResult> GetRoutes([FromQuery] RouteFiltersReq filters)
     {
         JwtModel authData = JWTUtils.GetAuthData(User.Claims);
         try
         {
-            var (routes, totalCount) = await routeService.GetManyRoutes(filters, authData.ClientId);
-            return Ok(new { routes, totalCount });
+            var paginatedResponse = await routeService.GetManyRoutes(filters, authData.ClientId);
+            return Ok(paginatedResponse);
         }
         catch (Exception ex)
         {
@@ -176,6 +234,30 @@ public class RouteController : Controller
         {
             logger.LogError(ex, "An internal server error occurred.");
             return StatusCode(500, new { message = "Internal Server Error" });
+        }
+    }
+
+    [HttpPut("{routeId?}/start")]
+    public async Task<IActionResult> StartRoute(int? routeId)
+    {
+        int id = 0;
+        JwtModel authData = JWTUtils.GetAuthData(User.Claims);
+        if (routeId.HasValue)
+        {
+            id = (int)routeId.Value;
+        }
+        try
+        {
+            var route = await routeService.StartRoute(id, authData.ClientId);
+            if (route == null)
+            {
+                return NotFound();
+            }
+            return Ok(route);
+        }
+        catch (Exception ex)
+        {
+            return MapExceptionsToHttp(ex);
         }
     }
 }

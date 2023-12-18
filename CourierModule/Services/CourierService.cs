@@ -1,6 +1,7 @@
 ﻿using sectors_srv_courier.CourierModule.Dao;
 using sectors_srv_manifest.CourierModule.Models;
 using sectors_srv_manifest.CourierModule.Models.Reqs;
+using sectors_srv_manifest.ManifestModule.Models;
 
 namespace sectors_srv_manifest.CourierModule.Services;
 
@@ -26,13 +27,20 @@ public class CourierService
         return await courierDao.GetSingleCourier(courierId, clientId);
     }
 
-    public async Task<(IEnumerable<CourierTO>, int)> GetManyCouriers(CourierFiltersReq filters, int clientId)
+    public async Task<PaginatedResponse<CourierTO>> GetManyCouriers(CourierFiltersReq filters, int clientId)
     {
         if (filters == null)
         {
             throw new ArgumentException("Filtros son requeridos");
         }
-        return await courierDao.GetManyCouriers(filters, clientId);
+        var (items, totalCount) = await courierDao.GetManyCouriers(filters, clientId);
+        return new PaginatedResponse<CourierTO>
+        {
+            Items = items,
+            Total = totalCount,
+            PageNumber = filters.PageNumber,
+            PageSize = filters.PageSize
+        };
     }
 
     public async Task<CourierTO?> UpdateCourier(UpdateCourierReq data, int clientId, string userId)
