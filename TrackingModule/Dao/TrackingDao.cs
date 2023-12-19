@@ -106,6 +106,44 @@ public class TrackingDao
         return (soTrackings, totalCount);
     }
 
+    public async Task<TriggerEventRes?> TriggerEvent(TriggerEventReq data, int clientId, string userId)
+    {
+        using SqlConnection connection = ConnectionFactory.GetConnection();
+        var errorCode = new SqlParameter("@ErrorCode", SqlDbType.Int)
+        {
+            Direction = ParameterDirection.Output
+        };
+
+        var errorDesc = new SqlParameter("@ErrorDesc", SqlDbType.NVarChar, 200)
+        {
+            Direction = ParameterDirection.Output
+        };
+
+        var parameters = new DynamicParameters();
+        parameters.Add("@ServiceOrderId", data.ServiceOrderId);
+        parameters.Add("@Image", data.Image);
+        parameters.Add("@Latitude", data.Latitude);
+        parameters.Add("@Longitude", data.Longitude);
+        parameters.Add("@ClientId", clientId);
+        parameters.Add("@RecipientName", data.RecipientName);
+        parameters.Add("@RecipientPersonalId", data.RecipientPersonalId);
+        parameters.Add("@RecipientSignature", data.RecipientSignature);
+        parameters.Add("@ErrorCode", dbType: DbType.Int32, direction: ParameterDirection.Output);
+        parameters.Add("@ErrorDesc", dbType: DbType.String, size: 200, direction: ParameterDirection.Output);
+
+        var detail = await connection.QuerySingleOrDefaultAsync<TriggerEventRes>("PrcTriggerEvent", parameters, commandType: CommandType.StoredProcedure);
+
+        int errCode = parameters.Get<int>("@ErrorCode");
+        string errDesc = parameters.Get<string>("@ErrorDesc");
+
+        if (errCode != 0 || detail == null)
+        {
+            throw new BadRequestException(errDesc);
+        }
+
+        return detail;
+    }
+
     public async Task<TriggerNobodyHomeEventRes?> TriggerNobodyHomeEvent(TriggerNobodyHomeEventReq data, int clientId, string userId)
     {
         using SqlConnection connection = ConnectionFactory.GetConnection();

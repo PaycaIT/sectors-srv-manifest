@@ -56,6 +56,21 @@ public class TrackingController : Controller
         }
     }
 
+    [HttpPost("event")]
+    public async Task<IActionResult> TriggerEvent(TriggerEventReq data)
+    {
+        JwtModel authData = JWTUtils.GetAuthData(User.Claims);
+        try
+        {
+            var result = await trackingService.TriggerEvent(data, authData.ClientId, authData.UserId);
+            return Ok(result);
+        }
+        catch (Exception ex)
+        {
+            return MapExceptionsToHttp(ex);
+        }
+    }
+
     [HttpPost("event/NH")]
     public async Task<IActionResult> TriggerNobodyHomeEvent(TriggerNobodyHomeEventReq data)
     {
