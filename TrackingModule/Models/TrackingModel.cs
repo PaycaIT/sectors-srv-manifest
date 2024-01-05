@@ -11,6 +11,7 @@ public class SOTrackingTO
     public string SOExternalId { get; set; } = string.Empty;
     public string EvExCode { get; set; } = string.Empty;
     public DateTime Date { get; set; }
+    public bool Synced { get; set; } = true;
 }
 
 public class EventsErrorTO
